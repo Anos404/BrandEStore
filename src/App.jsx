@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { Routes, Route, useNavigate, useSearchParams, useParams, Link } from 'react-router-dom';
 import { 
   Heart, 
   Search, 
@@ -29,7 +29,10 @@ import {
   Trash2,
   Plus,
   Minus,
-  ShoppingBag
+  ShoppingBag,
+  ArrowLeft,
+  Check,
+  MapPin
 } from 'lucide-react';
 import './homepage.css';
 
@@ -278,6 +281,92 @@ const services = [
   { icon: BarChart2, title: 'Product monitoring and inspection', img: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=320&auto=format&fit=crop&q=80' },
 ];
 
+// ----------------------------------------------------
+// Product detail helpers & unified catalog
+// ----------------------------------------------------
+const defaultDetailFields = {
+  sizes: ['Small', 'Medium', 'Large', 'XL'],
+  colors: ['Blue', 'Black', 'Grey', 'White'],
+  material: 'Plastic material',
+  seller: 'Artel Market',
+  inStock: true,
+  supplier: {
+    name: 'Guanioi Trading LLC',
+    location: 'Germany, Berlin',
+    verified: true,
+    worldwide: true,
+  },
+  breadcrumbs: ['Home', 'Electronics', 'Products'],
+  bulkPricing: [
+    { price: 98, range: '50-100 pcs' },
+    { price: 90, range: '100-700 pcs' },
+    { price: 78, range: '700+ pcs' },
+  ],
+  specs: {
+    price: 'Negotiable',
+    type: 'Classic shoes',
+    material: 'Plastic material',
+    design: 'Modern nice',
+  },
+  detailFeatures: [
+    'Some great feature names here',
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
+    'High quality material and durable construction',
+  ],
+  specTable: [
+    { label: 'Model', value: 'For men' },
+    { label: 'Style', value: 'Basic style' },
+    { label: 'Certificate', value: 'ISO-9001' },
+    { label: 'Size', value: '34mm x 450mm x 19mm' },
+    { label: 'Memory', value: '36GB RAM' },
+  ],
+};
+
+function enrichProduct(product) {
+  return {
+    ...defaultDetailFields,
+    ...product,
+    gallery: product.gallery || [product.img, product.img, product.img, product.img, product.img],
+    reviews: product.reviews ?? Math.max(12, Math.floor((product.orders || 50) / 5)),
+    sold: product.sold ?? product.orders ?? 50,
+    size: product.size || 'Medium',
+    color: product.color || 'Blue',
+  };
+}
+
+function getAllProducts() {
+  const recommendedProducts = recommended.map(item => enrichProduct({
+    id: item.id + 100,
+    name: item.name,
+    price: item.price,
+    img: item.img,
+    category: 'Clothes and wear',
+    brand: 'Generic',
+    oldPrice: item.price * 1.25,
+    rating: 4.3,
+    orders: 80,
+    features: ['Metallic'],
+    condition: 'Brand new',
+    shipping: 'Free Shipping',
+    description: `${item.name}. High quality product with excellent craftsmanship and modern design suitable for everyday use.`,
+    breadcrumbs: ['Home', 'Clothings', "Men's wear", 'Summer clothing'],
+    seller: item.id % 2 === 0 ? 'Best factory LLC' : 'Artel Market',
+  }));
+
+  return [...productsData.map(enrichProduct), ...recommendedProducts];
+}
+
+function getProductById(id) {
+  return getAllProducts().find(p => p.id === Number(id));
+}
+
+const savedForLaterDefaults = [
+  { id: 7, name: 'Lenovo Yoga Tab 11 - Slate Grey tablet', price: 349.00, img: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=220&auto=format&fit=crop&q=80' },
+  { id: 3, name: 'iPhone 13 Pro Max - 256GB Red Special', price: 999.00, img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=220&auto=format&fit=crop&q=80' },
+  { id: 5, name: 'Smart Watch Series 7 - Platinum Grey', price: 299.00, img: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=220&auto=format&fit=crop&q=80' },
+  { id: 10, name: 'HP Pavilion Laptop 15-inch - Silver Pro', price: 599.00, img: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=220&auto=format&fit=crop&q=80' },
+];
+
 const regions = [
   { flag: '🇦🇪', name: 'Arabic Emirates', url: 'shopname.ae' },
   { flag: '🇦🇺', name: 'Australia', url: 'shopname.com.au' },
@@ -352,19 +441,21 @@ export default function App() {
   
   // ---- Cart State ----
   const [cartItems, setCartItems] = useState([]);
+  const [savedForLater, setSavedForLater] = useState(savedForLaterDefaults);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   // Cart helpers
   const cartCount = cartItems.reduce((sum, item) => sum + item.qty, 0);
   const cartTotal = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
 
-  const addToCart = (product) => {
+  const addToCart = (product, qty = 1) => {
+    const enriched = enrichProduct(product);
     setCartItems(prev => {
-      const existing = prev.find(i => i.id === product.id);
+      const existing = prev.find(i => i.id === enriched.id);
       if (existing) {
-        return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
+        return prev.map(i => i.id === enriched.id ? { ...i, qty: i.qty + qty } : i);
       }
-      return [...prev, { ...product, qty: 1 }];
+      return [...prev, { ...enriched, qty }];
     });
     setIsCartOpen(true);
   };
@@ -373,10 +464,36 @@ export default function App() {
     setCartItems(prev => prev.filter(i => i.id !== id));
   };
 
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
   const updateQty = (id, delta) => {
     setCartItems(prev =>
       prev.map(i => i.id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i)
     );
+  };
+
+  const setCartQty = (id, qty) => {
+    setCartItems(prev =>
+      prev.map(i => i.id === id ? { ...i, qty: Math.max(1, Number(qty)) } : i)
+    );
+  };
+
+  const saveForLater = (id) => {
+    const item = cartItems.find(i => i.id === id);
+    if (!item) return;
+    setSavedForLater(prev => {
+      if (prev.some(i => i.id === id)) return prev;
+      return [...prev, { id: item.id, name: item.name, price: item.price, img: item.img }];
+    });
+    removeFromCart(id);
+  };
+
+  const moveSavedToCart = (item) => {
+    const product = getProductById(item.id);
+    if (product) addToCart(product, 1);
+    setSavedForLater(prev => prev.filter(i => i.id !== item.id));
   };
 
   // Search state in the global header
@@ -529,7 +646,7 @@ export default function App() {
               <Heart size={20} />
               <span>Orders</span>
             </button>
-            <button className="nav-item-btn cart-nav-btn" onClick={() => setIsCartOpen(true)}>
+            <button className="nav-item-btn cart-nav-btn" onClick={() => navigate('/cart')}>
               <div className="cart-icon-wrap">
                 <ShoppingCart size={20} />
                 {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
@@ -595,8 +712,23 @@ export default function App() {
               cartItems={cartItems}
               cartTotal={cartTotal}
               cartCount={cartCount}
+              savedForLater={savedForLater}
               removeFromCart={removeFromCart}
-              updateQty={updateQty}
+              setCartQty={setCartQty}
+              saveForLater={saveForLater}
+              moveSavedToCart={moveSavedToCart}
+              clearCart={clearCart}
+              navigate={navigate}
+            />
+          }
+        />
+        <Route
+          path="/product/:id"
+          element={
+            <ProductDetailPage
+              addToCart={addToCart}
+              wishlist={wishlist}
+              toggleWishlist={toggleWishlist}
               navigate={navigate}
             />
           }
@@ -881,12 +1013,12 @@ function HomePage({ navigate, addToCart }) {
           <div className="product-grid">
             {recommended.map(item => (
               <div key={item.id} className="product-card">
-                <div className="product-img-wrap" onClick={() => navigate(`/products?q=${encodeURIComponent(item.name)}`)}>
+                <div className="product-img-wrap" onClick={() => navigate(`/product/${item.id + 100}`)}>
                   <img src={item.img} alt={item.name} />
                 </div>
                 <div className="product-info">
                   <p className="product-price">${item.price.toFixed(2)}</p>
-                  <p className="product-name">{item.name}</p>
+                  <p className="product-name" onClick={() => navigate(`/product/${item.id + 100}`)} style={{ cursor: 'pointer' }}>{item.name}</p>
                   <button
                     className="product-add-cart-btn"
                     onClick={() => addToCart({ id: item.id + 100, name: item.name, price: item.price, img: item.img })}
@@ -1430,7 +1562,7 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
             <div className="products-grid-view">
               {paginatedProducts.map(product => (
                 <div key={product.id} className="grid-product-card">
-                  <div className="grid-img-wrap" onClick={() => navigate('/')}>
+                  <div className="grid-img-wrap" onClick={() => navigate(`/product/${product.id}`)}>
                     <img src={product.img} alt={product.name} />
                   </div>
                   <div className="grid-details-box">
@@ -1452,7 +1584,7 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
                       <StarRating rating={product.rating} />
                       <span className="rating-score-text">{product.rating}</span>
                     </div>
-                    <p className="grid-product-name">{product.name}</p>
+                    <p className="grid-product-name" onClick={() => navigate(`/product/${product.id}`)} style={{ cursor: 'pointer' }}>{product.name}</p>
                     <button
                       className="grid-add-cart-btn"
                       onClick={() => addToCart(product)}
@@ -1469,7 +1601,7 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
             <div className="products-list-view">
               {paginatedProducts.map(product => (
                 <div key={product.id} className="list-product-row">
-                  <div className="list-img-wrap" onClick={() => navigate('/')}>
+                  <div className="list-img-wrap" onClick={() => navigate(`/product/${product.id}`)}>
                     <img src={product.img} alt={product.name} />
                   </div>
                   <div className="list-info-wrap">
@@ -1501,7 +1633,7 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
 
                     <p className="list-description">{product.description}</p>
                     <div className="list-action-row">
-                      <button className="view-details-link" onClick={() => navigate('/')}>
+                      <button className="view-details-link" onClick={() => navigate(`/product/${product.id}`)}>
                         View details
                       </button>
                       <button className="list-add-cart-btn" onClick={() => addToCart(product)}>
@@ -1578,120 +1710,466 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
 // ----------------------------------------------------
 // CART PAGE COMPONENT
 // ----------------------------------------------------
-function CartPage({ cartItems, cartTotal, cartCount, removeFromCart, updateQty, navigate }) {
-  const shipping = cartTotal > 200 ? 0 : 14.99;
-  const tax = cartTotal * 0.08;
-  const orderTotal = cartTotal + shipping + tax;
+function CartPage({
+  cartItems,
+  cartTotal,
+  cartCount,
+  savedForLater,
+  removeFromCart,
+  setCartQty,
+  saveForLater,
+  moveSavedToCart,
+  clearCart,
+  navigate,
+}) {
+  const [couponCode, setCouponCode] = useState('');
+  const [discount, setDiscount] = useState(0);
+
+  const handleApplyCoupon = () => {
+    if (couponCode.trim().toUpperCase() === 'SAVE60') {
+      setDiscount(60);
+    } else if (couponCode.trim().toUpperCase() === 'SAVE10') {
+      setDiscount(cartTotal * 0.1);
+    } else {
+      setDiscount(0);
+      alert('Invalid coupon code. Try SAVE60 or SAVE10');
+    }
+  };
+
+  const tax = Math.max(0, (cartTotal - discount) * 0.01);
+  const orderTotal = Math.max(0, cartTotal - discount + tax);
 
   return (
-    <div className="cart-page-container container">
-      <div className="breadcrumbs">
-        <Link to="/">Home</Link>
-        <ChevronRight size={14} />
-        <span className="active-breadcrumb">Shopping Cart</span>
-      </div>
+    <main className="cart-page-wrap">
+      <div className="container cart-page-container">
+        <h1 className="cart-page-heading">My cart ({cartCount})</h1>
 
-      <h1 className="cart-page-title">Shopping Cart</h1>
-
-      {cartItems.length === 0 ? (
-        <div className="cart-empty-page">
-          <ShoppingBag size={80} color="#d1d5db" />
-          <h2>Your cart is empty</h2>
-          <p>Looks like you haven't added anything to your cart yet.</p>
-          <button className="btn-primary" onClick={() => navigate('/products')}>Browse Products</button>
-        </div>
-      ) : (
-        <div className="cart-page-layout">
-          {/* Left: Cart Items Table */}
-          <div className="cart-items-table">
-            <div className="cart-table-header">
-              <span className="col-product">Product</span>
-              <span className="col-price">Price</span>
-              <span className="col-qty">Quantity</span>
-              <span className="col-subtotal">Subtotal</span>
-              <span className="col-remove"></span>
-            </div>
-
-            {cartItems.map(item => (
-              <div key={item.id} className="cart-table-row">
-                <div className="cart-table-product">
-                  <img src={item.img} alt={item.name} className="cart-table-img" />
-                  <div>
-                    <p className="cart-table-name">{item.name}</p>
-                    {item.condition && <p className="cart-table-condition">{item.condition}</p>}
+        {cartItems.length === 0 ? (
+          <div className="cart-empty-page">
+            <ShoppingBag size={80} color="#d1d5db" />
+            <h2>Your cart is empty</h2>
+            <p>Looks like you haven&apos;t added anything to your cart yet.</p>
+            <button className="btn-primary" onClick={() => navigate('/products')}>Browse Products</button>
+          </div>
+        ) : (
+          <div className="cart-page-layout">
+            <div className="cart-main-col">
+              <div className="cart-items-card">
+                {cartItems.map(item => (
+                  <div key={item.id} className="cart-item-card">
+                    <img
+                      src={item.img}
+                      alt={item.name}
+                      className="cart-item-card-img"
+                      onClick={() => navigate(`/product/${item.id}`)}
+                    />
+                    <div className="cart-item-card-body">
+                      <div className="cart-item-card-top">
+                        <div>
+                          <h3
+                            className="cart-item-card-title"
+                            onClick={() => navigate(`/product/${item.id}`)}
+                          >
+                            {item.name}
+                          </h3>
+                          <p className="cart-item-card-meta">
+                            Size: {item.size || 'medium'}, Color: {item.color || 'blue'}, Material: {item.material || 'Plastic'}
+                          </p>
+                          <p className="cart-item-card-seller">Seller: {item.seller || 'Artel Market'}</p>
+                        </div>
+                        <span className="cart-item-card-price">${item.price.toFixed(2)}</span>
+                      </div>
+                      <div className="cart-item-card-actions">
+                        <div className="cart-qty-select-wrap">
+                          <label>Qty:</label>
+                          <select
+                            value={item.qty}
+                            onChange={e => setCartQty(item.id, e.target.value)}
+                            className="cart-qty-select"
+                          >
+                            {Array.from({ length: 20 }, (_, i) => i + 1).map(n => (
+                              <option key={n} value={n}>{n}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <button className="cart-action-remove" onClick={() => removeFromCart(item.id)}>
+                          Remove
+                        </button>
+                        <button className="cart-action-save" onClick={() => saveForLater(item.id)}>
+                          Save for later
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="cart-table-price">${item.price.toFixed(2)}</div>
-                <div className="cart-table-qty">
-                  <div className="cart-qty-controls">
-                    <button onClick={() => updateQty(item.id, -1)}><Minus size={13} /></button>
-                    <span>{item.qty}</span>
-                    <button onClick={() => updateQty(item.id, 1)}><Plus size={13} /></button>
-                  </div>
-                </div>
-                <div className="cart-table-subtotal">${(item.price * item.qty).toFixed(2)}</div>
-                <div className="cart-table-remove">
-                  <button onClick={() => removeFromCart(item.id)} className="cart-remove-icon-btn">
-                    <Trash2 size={16} />
+                ))}
+
+                <div className="cart-items-footer">
+                  <button className="btn-primary cart-back-btn" onClick={() => navigate('/products')}>
+                    <ArrowLeft size={16} /> Back to shop
+                  </button>
+                  <button className="btn-outline cart-remove-all-btn" onClick={clearCart}>
+                    Remove all
                   </button>
                 </div>
               </div>
-            ))}
 
-            <div className="cart-table-actions">
-              <button className="btn-outline" onClick={() => navigate('/products')}>
-                ← Continue Shopping
+              <div className="cart-trust-badges">
+                <div className="trust-badge">
+                  <Lock size={18} />
+                  <span>Secure payment</span>
+                </div>
+                <div className="trust-badge">
+                  <MessageSquare size={18} />
+                  <span>Customer support</span>
+                </div>
+                <div className="trust-badge">
+                  <Truck size={18} />
+                  <span>Free delivery</span>
+                </div>
+              </div>
+            </div>
+
+            <aside className="cart-summary-sidebar">
+              <div className="cart-coupon-box">
+                <h4>Have a coupon?</h4>
+                <div className="cart-coupon-row">
+                  <input
+                    placeholder="Add coupon"
+                    className="cart-coupon-input"
+                    value={couponCode}
+                    onChange={e => setCouponCode(e.target.value)}
+                  />
+                  <button className="cart-coupon-apply" onClick={handleApplyCoupon}>Apply</button>
+                </div>
+              </div>
+
+              <div className="cart-price-breakdown">
+                <div className="cart-price-row">
+                  <span>Subtotal:</span>
+                  <span>${cartTotal.toFixed(2)}</span>
+                </div>
+                {discount > 0 && (
+                  <div className="cart-price-row discount">
+                    <span>Discount:</span>
+                    <span>- ${discount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="cart-price-row tax">
+                  <span>Tax:</span>
+                  <span>+ ${tax.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div className="cart-total-row">
+                <span>Total:</span>
+                <strong>${orderTotal.toFixed(2)}</strong>
+              </div>
+
+              <button className="cart-checkout-green" onClick={() => alert('Checkout coming soon!')}>
+                Checkout
               </button>
-              <button className="btn-outline" onClick={() => {}}>
-                Update Cart
-              </button>
+
+              <div className="cart-payment-icons">
+                <span className="pay-icon">AMEX</span>
+                <span className="pay-icon">MC</span>
+                <span className="pay-icon">PayPal</span>
+                <span className="pay-icon">VISA</span>
+                <span className="pay-icon">Apple Pay</span>
+              </div>
+            </aside>
+          </div>
+        )}
+
+        {savedForLater.length > 0 && (
+          <section className="saved-for-later-section">
+            <h2 className="saved-section-title">Saved for later</h2>
+            <div className="saved-products-grid">
+              {savedForLater.map(item => (
+                <div key={item.id} className="saved-product-card">
+                  <div className="saved-product-img" onClick={() => navigate(`/product/${item.id}`)}>
+                    <img src={item.img} alt={item.name} />
+                  </div>
+                  <p className="saved-product-price">${item.price.toFixed(2)}</p>
+                  <p className="saved-product-name">{item.name}</p>
+                  <button className="saved-move-btn" onClick={() => moveSavedToCart(item)}>
+                    <ShoppingCart size={14} /> Move to cart
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="cart-promo-banner">
+          <div className="cart-promo-content">
+            <div>
+              <h3>Super discount on more than 100 USD</h3>
+              <p>Has elit magna scelerisque, posuere praesent tincidunt at.</p>
+            </div>
+            <button className="cart-promo-btn" onClick={() => navigate('/products')}>Shop now</button>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+// ----------------------------------------------------
+// PRODUCT DETAIL PAGE COMPONENT
+// ----------------------------------------------------
+function ProductDetailPage({ addToCart, wishlist, toggleWishlist, navigate }) {
+  const { id } = useParams();
+  const product = getProductById(id);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedColor, setSelectedColor] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [activeTab, setActiveTab] = useState('description');
+
+  useEffect(() => {
+    if (product) {
+      setSelectedImage(0);
+      setSelectedSize(product.sizes?.[0] || 'Medium');
+      setSelectedColor(product.colors?.[0] || 'Blue');
+      setQuantity(1);
+    }
+  }, [id]);
+
+  if (!product) {
+    return (
+      <div className="container product-not-found">
+        <h2>Product not found</h2>
+        <p>The product you are looking for does not exist.</p>
+        <button className="btn-primary" onClick={() => navigate('/products')}>Back to products</button>
+      </div>
+    );
+  }
+
+  const relatedProducts = getAllProducts()
+    .filter(p => p.id !== product.id && p.category === product.category)
+    .slice(0, 6);
+
+  const youMayLike = getAllProducts()
+    .filter(p => p.id !== product.id)
+    .slice(0, 5);
+
+  const handleAddToCart = () => {
+    addToCart({ ...product, size: selectedSize, color: selectedColor }, quantity);
+  };
+
+  return (
+    <main className="product-detail-page">
+      <div className="container">
+        <div className="breadcrumbs">
+          {(product.breadcrumbs || ['Home', 'Products']).map((crumb, i, arr) => (
+            <React.Fragment key={crumb}>
+              {i < arr.length - 1 ? (
+                <Link to={i === 0 ? '/' : '/products'}>{crumb}</Link>
+              ) : (
+                <span className="active-breadcrumb">{crumb}</span>
+              )}
+              {i < arr.length - 1 && <ChevronRight size={14} />}
+            </React.Fragment>
+          ))}
+        </div>
+
+        <div className="product-detail-top">
+          <div className="product-gallery">
+            <div className="product-main-image">
+              <img src={product.gallery[selectedImage]} alt={product.name} />
+            </div>
+            <div className="product-thumbnails">
+              {product.gallery.map((img, i) => (
+                <button
+                  key={i}
+                  className={`product-thumb ${selectedImage === i ? 'active' : ''}`}
+                  onClick={() => setSelectedImage(i)}
+                >
+                  <img src={img} alt={`${product.name} view ${i + 1}`} />
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Right: Order Summary */}
-          <div className="cart-summary-box">
-            <h3 className="cart-summary-title">Order Summary</h3>
-
-            <div className="cart-summary-rows">
-              <div className="cart-summary-row">
-                <span>Subtotal ({cartCount} items)</span>
-                <span>${cartTotal.toFixed(2)}</span>
-              </div>
-              <div className="cart-summary-row">
-                <span>Shipping</span>
-                <span>{shipping === 0 ? <span className="free-shipping-tag">FREE</span> : `$${shipping.toFixed(2)}`}</span>
-              </div>
-              <div className="cart-summary-row">
-                <span>Estimated Tax (8%)</span>
-                <span>${tax.toFixed(2)}</span>
-              </div>
-            </div>
-
-            <div className="cart-summary-total">
-              <span>Order Total</span>
-              <strong>${orderTotal.toFixed(2)}</strong>
-            </div>
-
-            {shipping > 0 && (
-              <p className="free-shipping-hint">Add ${(200 - cartTotal).toFixed(2)} more for <strong>FREE shipping!</strong></p>
+          <div className="product-detail-info">
+            {product.inStock && (
+              <span className="product-stock-badge"><Check size={14} /> In stock</span>
             )}
-
-            <div className="coupon-row">
-              <input placeholder="Coupon code" className="coupon-input" />
-              <button className="coupon-apply-btn">Apply</button>
+            <h1 className="product-detail-title">{product.name}</h1>
+            <div className="product-detail-rating">
+              <StarRating rating={product.rating} />
+              <span>{product.rating}</span>
+              <span className="dot-divider">•</span>
+              <span>{product.reviews} reviews</span>
+              <span className="dot-divider">•</span>
+              <span>{product.sold} sold</span>
             </div>
 
-            <button className="btn-primary cart-checkout-btn" onClick={() => alert('Checkout coming soon!')}>
-              Proceed to Checkout
+            <div className="bulk-pricing-row">
+              {product.bulkPricing.map(tier => (
+                <div key={tier.range} className="bulk-price-box">
+                  <strong>${tier.price.toFixed(2)}</strong>
+                  <span>{tier.range}</span>
+                </div>
+              ))}
+            </div>
+
+            <table className="product-specs-table">
+              <tbody>
+                <tr><td>Price:</td><td>{product.specs?.price || 'Negotiable'}</td></tr>
+                <tr><td>Type:</td><td>{product.specs?.type || product.category}</td></tr>
+                <tr><td>Material:</td><td>{product.specs?.material || product.material}</td></tr>
+                <tr><td>Design:</td><td>{product.specs?.design || 'Modern nice'}</td></tr>
+              </tbody>
+            </table>
+
+            <div className="product-extra-info">
+              <p><strong>Customization:</strong> Customized logo and design options available</p>
+              <p><strong>Protection:</strong> Refund Policy · Full refund if product is not as described</p>
+              <p><strong>Warranty:</strong> 2 years full warranty</p>
+            </div>
+          </div>
+
+          <aside className="product-supplier-card">
+            <span className="supplier-label">Supplier</span>
+            <h3>{product.supplier.name}</h3>
+            <p className="supplier-location"><MapPin size={14} /> {product.supplier.location}</p>
+            <div className="supplier-badges">
+              {product.supplier.verified && <span className="supplier-badge verified">Verified Seller</span>}
+              {product.supplier.worldwide && <span className="supplier-badge shipping">Worldwide shipping</span>}
+            </div>
+            <button className="btn-primary supplier-inquiry-btn">Send inquiry</button>
+            <button className="btn-outline supplier-profile-btn">Seller&apos;s profile</button>
+            <button
+              className={`save-later-link ${wishlist.includes(product.id) ? 'active' : ''}`}
+              onClick={() => toggleWishlist(product.id)}
+            >
+              <Heart size={16} fill={wishlist.includes(product.id) ? 'red' : 'none'} color={wishlist.includes(product.id) ? 'red' : '#0d6efd'} />
+              Save for later
             </button>
 
-            <div className="cart-secure-badges">
-              <ShieldCheck size={16} color="#22c55e" />
-              <span>Secure & encrypted checkout</span>
+            <div className="detail-options">
+              <div className="detail-option-row">
+                <label>Size</label>
+                <select value={selectedSize} onChange={e => setSelectedSize(e.target.value)}>
+                  {product.sizes.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div className="detail-option-row">
+                <label>Color</label>
+                <select value={selectedColor} onChange={e => setSelectedColor(e.target.value)}>
+                  {product.colors.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="detail-option-row">
+                <label>Quantity</label>
+                <select value={quantity} onChange={e => setQuantity(Number(e.target.value))}>
+                  {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="detail-price-display">${product.price.toFixed(2)}</div>
+            <button className="btn-primary detail-add-cart" onClick={handleAddToCart}>
+              <ShoppingCart size={16} /> Add to cart
+            </button>
+            <button className="btn-outline detail-buy-now" onClick={() => { handleAddToCart(); navigate('/cart'); }}>
+              Buy now
+            </button>
+          </aside>
+        </div>
+
+        <div className="product-detail-middle">
+          <div className="product-tabs-section">
+            <div className="product-tabs">
+              {['description', 'reviews', 'shipping', 'about seller'].map(tab => (
+                <button
+                  key={tab}
+                  className={`product-tab ${activeTab === tab ? 'active' : ''}`}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            <div className="product-tab-content">
+              {activeTab === 'description' && (
+                <>
+                  <p className="product-description-text">{product.description}</p>
+                  <table className="product-detail-spec-table">
+                    <tbody>
+                      {product.specTable.map(row => (
+                        <tr key={row.label}>
+                          <td>{row.label}</td>
+                          <td>{row.value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <ul className="product-feature-list">
+                    {product.detailFeatures.map((feat, i) => (
+                      <li key={i}>{feat}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              {activeTab === 'reviews' && (
+                <p className="tab-placeholder">Customer reviews coming soon. Average rating: {product.rating} from {product.reviews} reviews.</p>
+              )}
+              {activeTab === 'shipping' && (
+                <p className="tab-placeholder">{product.shipping}. Delivery within 5-10 business days. Free returns within 30 days.</p>
+              )}
+              {activeTab === 'about seller' && (
+                <div className="tab-placeholder">
+                  <p><strong>{product.supplier.name}</strong> — {product.supplier.location}</p>
+                  <p>Verified supplier with worldwide shipping. Seller: {product.seller}</p>
+                </div>
+              )}
             </div>
           </div>
+
+          <aside className="you-may-like-sidebar">
+            <h4>You may like</h4>
+            {youMayLike.map(item => (
+              <div key={item.id} className="you-may-like-item" onClick={() => navigate(`/product/${item.id}`)}>
+                <img src={item.img} alt={item.name} />
+                <div>
+                  <p className="ym-title">{item.name}</p>
+                  <p className="ym-price">${item.price.toFixed(2)} - ${(item.price * 1.5).toFixed(2)}</p>
+                </div>
+              </div>
+            ))}
+          </aside>
         </div>
-      )}
-    </div>
+
+        <section className="related-products-section">
+          <h2 className="section-title mb-16">Related products</h2>
+          <div className="related-products-grid">
+            {(relatedProducts.length > 0 ? relatedProducts : getAllProducts().slice(0, 6)).map(item => (
+              <div key={item.id} className="related-product-card" onClick={() => navigate(`/product/${item.id}`)}>
+                <div className="related-product-img">
+                  <img src={item.img} alt={item.name} />
+                </div>
+                <p className="related-product-name">{item.name}</p>
+                <p className="related-product-price">${item.price.toFixed(2)} - ${(item.price * 1.25).toFixed(2)}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="cart-promo-banner detail-promo">
+          <div className="cart-promo-content">
+            <div>
+              <h3>Super discount on more than 100 USD</h3>
+              <p>Has elit magna scelerisque, posuere praesent tincidunt at.</p>
+            </div>
+            <button className="cart-promo-btn" onClick={() => navigate('/products')}>Shop now</button>
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }
