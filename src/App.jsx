@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useSearchParams, useParams, Link } from 'react-router-dom';
-import { 
-  Heart, 
-  Search, 
-  Package, 
-  Settings, 
-  Truck, 
-  BarChart2, 
+import { Routes, Route, useNavigate, useSearchParams, useParams, Link, useLocation } from 'react-router-dom';
+import {
+  Heart,
+  Search,
+  Package,
+  Settings,
+  Truck,
+  BarChart2,
   ChevronRight,
   MessageSquare,
   ShoppingCart,
@@ -32,7 +32,11 @@ import {
   ShoppingBag,
   ArrowLeft,
   Check,
-  MapPin
+  MapPin,
+  Home,
+  MoreVertical,
+  Camera,
+  LogOut
 } from 'lucide-react';
 import './homepage.css';
 
@@ -334,8 +338,9 @@ function enrichProduct(product) {
   };
 }
 
-function getAllProducts() {
-  const recommendedProducts = recommended.map(item => enrichProduct({
+const allProducts = [
+  ...productsData.map(enrichProduct),
+  ...recommended.map(item => enrichProduct({
     id: item.id + 100,
     name: item.name,
     price: item.price,
@@ -351,13 +356,15 @@ function getAllProducts() {
     description: `${item.name}. High quality product with excellent craftsmanship and modern design suitable for everyday use.`,
     breadcrumbs: ['Home', 'Clothings', "Men's wear", 'Summer clothing'],
     seller: item.id % 2 === 0 ? 'Best factory LLC' : 'Artel Market',
-  }));
+  }))
+];
 
-  return [...productsData.map(enrichProduct), ...recommendedProducts];
+function getAllProducts() {
+  return allProducts;
 }
 
 function getProductById(id) {
-  return getAllProducts().find(p => p.id === Number(id));
+  return allProducts.find(p => p.id === Number(id));
 }
 
 const savedForLaterDefaults = [
@@ -389,9 +396,9 @@ function Countdown() {
     const t = setInterval(() => {
       setTime(prev => {
         let { d, h, m, s } = prev;
-        s--; 
-        if (s < 0) { s = 59; m--; } 
-        if (m < 0) { m = 59; h--; } 
+        s--;
+        if (s < 0) { s = 59; m--; }
+        if (m < 0) { m = 59; h--; }
         if (h < 0) { h = 23; d--; }
         if (d < 0) { d = 0; h = 0; m = 0; s = 0; }
         return { d, h, m, s };
@@ -420,11 +427,11 @@ function StarRating({ rating }) {
   const rounded = Math.round(rating);
   for (let i = 1; i <= 5; i++) {
     stars.push(
-      <Star 
-        key={i} 
-        size={14} 
-        fill={i <= rounded ? '#ff9017' : 'none'} 
-        color={i <= rounded ? '#ff9017' : '#d1d5db'} 
+      <Star
+        key={i}
+        size={14}
+        fill={i <= rounded ? '#ff9017' : 'none'}
+        color={i <= rounded ? '#ff9017' : '#d1d5db'}
       />
     );
   }
@@ -436,9 +443,75 @@ function StarRating({ rating }) {
 // ----------------------------------------------------
 export default function App() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchParams] = useSearchParams();
   const [wishlist, setWishlist] = useState([]);
-  
+
+  // ---- Authentication State ----
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('currentUser');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('currentUser');
+    }
+  }, [currentUser]);
+
+  const handleLogin = (email, password) => {
+    if (email && password) {
+      const defaultUser = {
+        name: email.split('@')[0],
+        email: email,
+        phone: '+1 (555) 019-2834',
+        address: '123 E-Commerce Way, Tech City, TC 94043',
+        bio: 'Tech enthusiast and frequent shopper.',
+        avatar: null
+      };
+      setCurrentUser(defaultUser);
+      return true;
+    }
+    return false;
+  };
+
+  const handleRegister = (name, email, password) => {
+    if (name && email && password) {
+      const newUser = {
+        name: name,
+        email: email,
+        phone: '+1 (555) 019-2834',
+        address: '123 E-Commerce Way, Tech City, TC 94043',
+        bio: 'New shopper on BrandEStore.',
+        avatar: null
+      };
+      setCurrentUser(newUser);
+      return true;
+    }
+    return false;
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    navigate('/');
+  };
+
+  const handleUpdateProfile = (updatedFields) => {
+    setCurrentUser(prev => prev ? { ...prev, ...updatedFields } : null);
+  };
+
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   // ---- Cart State ----
   const [cartItems, setCartItems] = useState([]);
   const [savedForLater, setSavedForLater] = useState(savedForLaterDefaults);
@@ -504,7 +577,7 @@ export default function App() {
   // Sync search input with query params if any
   useEffect(() => {
     const q = searchParams.get('q');
-    if (q) setSearchInput(q);
+    setSearchInput(q || '');
   }, [searchParams]);
 
   const handleSearchSubmit = () => {
@@ -598,9 +671,75 @@ export default function App() {
           )}
         </div>
       </aside>
+
+      {/* Mobile Menu Drawer Overlay */}
+      {isMenuOpen && (
+        <div className="menu-overlay" onClick={() => setIsMenuOpen(false)} />
+      )}
+
+      {/* Mobile Menu Drawer (Image 5) */}
+      <aside className={`menu-drawer ${isMenuOpen ? 'menu-drawer-open' : ''}`}>
+        <div className="menu-drawer-header">
+          <div 
+            className="menu-profile-box" 
+            style={{ cursor: 'pointer' }}
+            onClick={() => {
+              if (currentUser) {
+                navigate('/profile');
+              } else {
+                navigate('/login');
+              }
+              setIsMenuOpen(false);
+            }}
+          >
+            <div className="menu-avatar">
+              {currentUser && currentUser.avatar ? (
+                <img src={currentUser.avatar} alt="Profile" className="avatar-img-menu" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+              ) : (
+                <User size={20} color="#8b96a5" />
+              )}
+            </div>
+            <span className="menu-signin">
+              {currentUser ? `Hi, ${currentUser.name}` : 'Sign in | Register'}
+            </span>
+          </div>
+          <button className="menu-close-btn" onClick={() => setIsMenuOpen(false)}>
+            <X size={20} />
+          </button>
+        </div>
+        <div className="menu-drawer-body">
+          <ul className="menu-drawer-links">
+            <li onClick={() => setIsMenuOpen(false)}><Link to="/"><Home size={18} /> Home</Link></li>
+            <li onClick={() => setIsMenuOpen(false)}><Link to="/products"><Grid size={18} /> Categories</Link></li>
+            <li onClick={() => setIsMenuOpen(false)}><Link to="/"><Heart size={18} /> Favorites</Link></li>
+            <li onClick={() => setIsMenuOpen(false)}><Link to="/products"><Package size={18} /> My orders</Link></li>
+            {currentUser && (
+              <li onClick={() => { handleLogout(); setIsMenuOpen(false); }}>
+                <span className="menu-link-span" style={{ cursor: 'pointer', color: '#eb3c3c' }}>
+                  <LogOut size={18} /> Log out
+                </span>
+              </li>
+            )}
+          </ul>
+          <hr className="menu-divider" />
+          <ul className="menu-drawer-links">
+            <li><span className="menu-link-span"><Globe size={18} /> English | USD</span></li>
+            <li><span className="menu-link-span"><MessageSquare size={18} /> Contact us</span></li>
+            <li><span className="menu-link-span"><Settings size={18} /> About</span></li>
+          </ul>
+          <hr className="menu-divider" />
+          <ul className="menu-drawer-flat-links">
+            <li onClick={() => setIsMenuOpen(false)}><Link to="/">User agreement</Link></li>
+            <li onClick={() => setIsMenuOpen(false)}><Link to="/">Partnership</Link></li>
+            <li onClick={() => setIsMenuOpen(false)}><Link to="/">Privacy policy</Link></li>
+          </ul>
+        </div>
+      </aside>
+
       {/* 1. Header */}
       <header className="main-header">
-        <div className="container header-inner">
+        {/* Desktop Header Content */}
+        <div className="container header-inner hide-on-mobile">
           <div className="header-logo" onClick={() => navigate('/')}>
             <div className="logo-icon">
               <Package size={22} color="white" fill="white" />
@@ -609,10 +748,10 @@ export default function App() {
           </div>
 
           <div className="header-search-box">
-            <input 
-              type="text" 
-              placeholder="Search" 
-              className="search-input" 
+            <input
+              type="text"
+              placeholder="Search"
+              className="search-input"
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleSearchSubmit(); }}
@@ -634,9 +773,9 @@ export default function App() {
           </div>
 
           <nav className="header-user-nav">
-            <button className="nav-item-btn" onClick={() => navigate('/')}>
+            <button className="nav-item-btn" onClick={() => navigate(currentUser ? '/profile' : '/login')}>
               <User size={20} />
-              <span>Profile</span>
+              <span>{currentUser ? currentUser.name : 'Profile'}</span>
             </button>
             <button className="nav-item-btn" onClick={() => navigate('/')}>
               <MessageSquare size={20} />
@@ -655,10 +794,137 @@ export default function App() {
             </button>
           </nav>
         </div>
+
+        {/* Mobile Dynamic Header Content */}
+        <div className="container mobile-header show-on-mobile">
+          {/* On home page */}
+          {location.pathname === '/' && (
+            <>
+              <button className="mobile-menu-toggle" onClick={() => setIsMenuOpen(true)}>
+                <Menu size={22} />
+              </button>
+              <div className="mobile-logo" onClick={() => navigate('/')}>
+                <div className="logo-icon-sm">
+                  <Package size={16} color="white" fill="white" />
+                </div>
+                <span className="mobile-logo-text">Brand</span>
+              </div>
+              <div className="mobile-header-actions">
+                <button onClick={() => navigate('/cart')} className="mobile-nav-btn cart-nav-btn">
+                  <div className="cart-icon-wrap">
+                    <ShoppingCart size={22} />
+                    {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+                  </div>
+                </button>
+                <button onClick={() => navigate('/')} className="mobile-nav-btn"><User size={22} /></button>
+              </div>
+            </>
+          )}
+
+          {/* On listing page */}
+          {location.pathname === '/products' && (
+            <>
+              <button className="mobile-back-btn" onClick={() => navigate(-1)}>
+                <ArrowLeft size={22} />
+              </button>
+              <h2 className="mobile-header-title">{searchParams.get('category') || 'Mobile accessory'}</h2>
+              <div className="mobile-header-actions">
+                <button onClick={() => navigate('/cart')} className="mobile-nav-btn cart-nav-btn">
+                  <div className="cart-icon-wrap">
+                    <ShoppingCart size={22} />
+                    {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+                  </div>
+                </button>
+                <button onClick={() => navigate('/')} className="mobile-nav-btn"><User size={22} /></button>
+              </div>
+            </>
+          )}
+
+          {/* On cart page */}
+          {location.pathname === '/cart' && (
+            <>
+              <button className="mobile-back-btn" onClick={() => navigate(-1)}>
+                <ArrowLeft size={22} />
+              </button>
+              <h2 className="mobile-header-title">Shopping cart</h2>
+              <div style={{ width: '44px' }}></div>
+            </>
+          )}
+
+          {/* On detail page */}
+          {location.pathname.startsWith('/product/') && (
+            <>
+              <button className="mobile-back-btn" onClick={() => navigate(-1)}>
+                <ArrowLeft size={22} />
+              </button>
+              <h2 className="mobile-header-title">Product details</h2>
+              <div className="mobile-header-actions">
+                <button onClick={() => navigate('/cart')} className="mobile-nav-btn cart-nav-btn">
+                  <div className="cart-icon-wrap">
+                    <ShoppingCart size={22} />
+                    {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+                  </div>
+                </button>
+                <button onClick={() => navigate('/')} className="mobile-nav-btn"><User size={22} /></button>
+              </div>
+            </>
+          )}
+        </div>
       </header>
 
-      {/* 2. Navigation Bar */}
-      <nav className="navbar-sub">
+      {/* Mobile Search Bar (under header, only on home & listing pages) */}
+      {(location.pathname === '/' || location.pathname === '/products') && (
+        <div className="mobile-search-bar show-on-mobile">
+          <div className="mobile-search-input-wrap">
+            <Search size={18} className="mobile-search-icon" />
+            <input
+              type="text"
+              placeholder="Search"
+              className="mobile-search-input"
+              value={searchInput}
+              onChange={e => setSearchInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleSearchSubmit(); }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Categories Scroll Pills */}
+      {location.pathname === '/' && (
+        <div className="mobile-categories-scroll show-on-mobile">
+          {['All category', 'Gadgets', 'Clothes', 'Accessories', 'Electronics'].map(cat => (
+            <button
+              key={cat}
+              className="mobile-category-pill"
+              onClick={() => {
+                if (cat === 'All category') navigate('/products');
+                else navigate(`/products?category=${encodeURIComponent(cat === 'Gadgets' || cat === 'Accessories' ? 'Electronics' : cat === 'Clothes' ? 'Clothes and wear' : cat)}`);
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {location.pathname === '/products' && (
+        <div className="mobile-categories-scroll show-on-mobile">
+          {['Tablets', 'Phones', 'Ipads', 'Ipod', 'Accessories', 'Gadgets'].map(subcat => (
+            <button
+              key={subcat}
+              className="mobile-category-pill"
+              onClick={() => {
+                navigate(`/products?q=${encodeURIComponent(subcat)}`);
+              }}
+            >
+              {subcat}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 2. Navigation Bar (Desktop Only) */}
+      <nav className="navbar-sub hide-on-mobile">
         <div className="container navbar-inner">
           <div className="navbar-left">
             <button className="navbar-all-btn" onClick={() => navigate('/products')}>
@@ -693,17 +959,31 @@ export default function App() {
 
       {/* 3. Page Routes */}
       <Routes>
-        <Route path="/" element={<HomePage navigate={navigate} addToCart={addToCart} />} />
-        <Route 
-          path="/products" 
+        <Route path="/" element={<HomePage navigate={navigate} addToCart={addToCart} currentUser={currentUser} handleLogout={handleLogout} />} />
+        <Route path="/login" element={<LoginPage navigate={navigate} handleLogin={handleLogin} currentUser={currentUser} />} />
+        <Route path="/register" element={<RegisterPage navigate={navigate} handleRegister={handleRegister} currentUser={currentUser} />} />
+        <Route
+          path="/profile"
           element={
-            <ProductListingPage 
-              wishlist={wishlist} 
-              toggleWishlist={toggleWishlist} 
+            <ProfilePage
+              currentUser={currentUser}
+              handleLogout={handleLogout}
+              handleUpdateProfile={handleUpdateProfile}
+              navigate={navigate}
+              wishlist={wishlist}
+            />
+          }
+        />
+        <Route
+          path="/products"
+          element={
+            <ProductListingPage
+              wishlist={wishlist}
+              toggleWishlist={toggleWishlist}
               navigate={navigate}
               addToCart={addToCart}
             />
-          } 
+          }
         />
         <Route
           path="/cart"
@@ -713,6 +993,7 @@ export default function App() {
               cartTotal={cartTotal}
               cartCount={cartCount}
               savedForLater={savedForLater}
+              setSavedForLater={setSavedForLater}
               removeFromCart={removeFromCart}
               setCartQty={setCartQty}
               saveForLater={saveForLater}
@@ -836,7 +1117,7 @@ export default function App() {
 // ----------------------------------------------------
 // HOMEPAGE COMPONENT
 // ----------------------------------------------------
-function HomePage({ navigate, addToCart }) {
+function HomePage({ navigate, addToCart, currentUser, handleLogout }) {
   const [selectedCategory, setSelectedCategory] = useState('Automobiles');
 
   return (
@@ -844,12 +1125,12 @@ function HomePage({ navigate, addToCart }) {
       {/* Hero Section */}
       <section className="hero-section">
         <div className="container hero-inner">
-          <aside className="hero-sidebar">
+          <aside className="hero-sidebar hide-on-mobile">
             <ul>
               {categories.map(cat => (
                 <li key={cat}>
-                  <button 
-                    className={selectedCategory === cat ? 'active' : ''} 
+                  <button
+                    className={selectedCategory === cat ? 'active' : ''}
                     onClick={() => {
                       setSelectedCategory(cat);
                       if (cat === 'Computer and tech' || cat === 'More category') {
@@ -873,26 +1154,39 @@ function HomePage({ navigate, addToCart }) {
               <button className="hero-cta" onClick={() => navigate('/products?category=Electronics')}>Learn more</button>
             </div>
             <div className="hero-img-wrap">
-              <img 
-                src="https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500&auto=format&fit=crop&q=80" 
-                alt="Electronics" 
-                className="hero-img" 
+              <img
+                src="https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500&auto=format&fit=crop&q=80"
+                alt="Electronics"
+                className="hero-img"
               />
             </div>
           </div>
 
-          <aside className="hero-aside">
+          <aside className="hero-aside hide-on-mobile">
             <div className="aside-user">
-              <div className="avatar-placeholder">
-                <User size={20} color="#8b96a5" />
+              <div className="avatar-placeholder" style={{ overflow: 'hidden' }}>
+                {currentUser && currentUser.avatar ? (
+                  <img src={currentUser.avatar} alt="Profile" className="avatar-img-aside" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                ) : (
+                  <User size={20} color="#8b96a5" />
+                )}
               </div>
               <div>
-                <p className="aside-greeting">Hi, user</p>
-                <p className="aside-sub">let's get started</p>
+                <p className="aside-greeting">Hi, {currentUser ? currentUser.name : 'user'}</p>
+                <p className="aside-sub">{currentUser ? 'Welcome back!' : "let's get started"}</p>
               </div>
             </div>
-            <button className="btn-primary aside-btn" onClick={() => navigate('/products')}>Join now</button>
-            <button className="btn-outline aside-btn" onClick={() => navigate('/products')}>Log in</button>
+            {currentUser ? (
+              <>
+                <button className="btn-primary aside-btn" onClick={() => navigate('/profile')}>My Profile</button>
+                <button className="btn-outline aside-btn" onClick={handleLogout}>Log out</button>
+              </>
+            ) : (
+              <>
+                <button className="btn-primary aside-btn" onClick={() => navigate('/register')}>Join now</button>
+                <button className="btn-outline aside-btn" onClick={() => navigate('/login')}>Log in</button>
+              </>
+            )}
             <div className="aside-promo aside-promo-orange" onClick={() => navigate('/products?brand=Samsung')}>
               <p>Get US $10 off</p>
               <small>with a new supplier</small>
@@ -932,16 +1226,16 @@ function HomePage({ navigate, addToCart }) {
 
       {/* Home & Outdoor + Consumer Electronics Grid Sections */}
       {[
-        { 
-          title: 'Home and outdoor', 
-          img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=320&auto=format&fit=crop&q=80', 
+        {
+          title: 'Home and outdoor',
+          img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=320&auto=format&fit=crop&q=80',
           items: homeItems,
           bgClass: 'home-outdoor-sidebar',
           targetCategory: 'Home interiors'
         },
-        { 
-          title: 'Consumer electronics and gadgets', 
-          img: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=320&auto=format&fit=crop&q=80', 
+        {
+          title: 'Consumer electronics and gadgets',
+          img: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=320&auto=format&fit=crop&q=80',
           items: techItems,
           bgClass: 'electronics-sidebar',
           targetCategory: 'Electronics'
@@ -949,9 +1243,14 @@ function HomePage({ navigate, addToCart }) {
       ].map(section => (
         <section className="section" key={section.title}>
           <div className="container">
+            {/* Mobile Section Header */}
+            <div className="mobile-section-header show-on-mobile">
+              <h2 className="section-title">{section.title === 'Consumer electronics and gadgets' ? 'Consumer electronics' : section.title}</h2>
+            </div>
+
             <div className="cat-section-card">
-              <div 
-                className={`cat-section-sidebar ${section.bgClass}`} 
+              <div
+                className={`cat-section-sidebar ${section.bgClass} hide-on-mobile`}
                 style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url(${section.img})` }}
               >
                 <h2 className="cat-sidebar-title">{section.title}</h2>
@@ -973,6 +1272,13 @@ function HomePage({ navigate, addToCart }) {
                 ))}
               </div>
             </div>
+
+            {/* Mobile Section Footer Link */}
+            <div className="mobile-section-footer show-on-mobile">
+              <button className="mobile-source-now-link" onClick={() => navigate(`/products?category=${encodeURIComponent(section.targetCategory)}`)}>
+                Source now &rarr;
+              </button>
+            </div>
           </div>
         </section>
       ))}
@@ -983,9 +1289,10 @@ function HomePage({ navigate, addToCart }) {
           <div className="quote-banner-bg" style={{ backgroundImage: `linear-gradient(90deg, rgba(26,115,232,0.9) 0%, rgba(13,110,253,0.7) 100%), url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1000&auto=format&fit=crop&q=80')` }}>
             <div className="quote-left">
               <h2>An easy way to send requests to all suppliers</h2>
-              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.</p>
+              <p className="hide-on-mobile">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.</p>
+              <button className="btn-primary quote-submit-btn show-on-mobile" onClick={() => navigate('/products')}>Send inquiry</button>
             </div>
-            <div className="quote-form-card">
+            <div className="quote-form-card hide-on-mobile">
               <h3>Send quote to suppliers</h3>
               <input placeholder="What item you need?" className="quote-input-field" />
               <textarea placeholder="Type more details" rows={3} className="quote-textarea" />
@@ -1097,13 +1404,14 @@ function HomePage({ navigate, addToCart }) {
 // ----------------------------------------------------
 function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   // 1. Read query parameters
   const searchQuery = searchParams.get('q') || '';
   const categoryFilter = searchParams.get('category') || '';
   const brandParam = searchParams.get('brand') || '';
 
   // 2. Local filters states
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
   const [selectedBrands, setSelectedBrands] = useState(brandParam ? [brandParam] : []);
   const [selectedFeatures, setSelectedFeatures] = useState([]);
@@ -1135,11 +1443,16 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
     }
   }, [brandParam]);
 
+  // Reset page to 1 when search parameters or category changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, categoryFilter, brandParam]);
+
   // Toggle brand selections
   const handleBrandChange = (brandName) => {
-    setSelectedBrands(prev => 
-      prev.includes(brandName) 
-        ? prev.filter(b => b !== brandName) 
+    setSelectedBrands(prev =>
+      prev.includes(brandName)
+        ? prev.filter(b => b !== brandName)
         : [...prev, brandName]
     );
     setCurrentPage(1);
@@ -1147,9 +1460,9 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
 
   // Toggle features selections
   const handleFeatureChange = (featureName) => {
-    setSelectedFeatures(prev => 
-      prev.includes(featureName) 
-        ? prev.filter(f => f !== featureName) 
+    setSelectedFeatures(prev =>
+      prev.includes(featureName)
+        ? prev.filter(f => f !== featureName)
         : [...prev, featureName]
     );
     setCurrentPage(1);
@@ -1210,12 +1523,12 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
   // ----------------------------------------------------
   // Dynamic Filtering Logic
   // ----------------------------------------------------
-  const filteredProducts = productsData.filter(product => {
+  const filteredProducts = getAllProducts().filter(product => {
     // 1. Search Query Filter
     if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase()) && !product.description.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
-    
+
     // 2. Category Filter
     if (categoryFilter && categoryFilter !== 'All category' && product.category !== categoryFilter) {
       return false;
@@ -1284,10 +1597,177 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
     currentPage * itemsPerPage
   );
 
+  const activeFilterCount = selectedBrands.length + selectedFeatures.length + (selectedCondition !== 'Any' ? 1 : 0) + (selectedRating !== null ? 1 : 0) + (isVerifiedOnly ? 1 : 0) + (appliedMin !== null || appliedMax !== null ? 1 : 0);
+
+  const youMayLike = getAllProducts().slice(0, 6);
+
+  const sidebarContentMarkup = (
+    <>
+      {/* Accordion: Category */}
+      <div className="sidebar-accordion">
+        <div className="accordion-header" onClick={() => toggleAccordion('category')}>
+          <span>Category</span>
+          <ChevronDown size={16} className={`accordion-icon ${expandedFilters.category ? 'expanded' : ''}`} />
+        </div>
+        {expandedFilters.category && (
+          <div className="accordion-content">
+            <ul className="accordion-categories-list">
+              {['Mobile accessory', 'Electronics', 'Smartphones', 'Modern tech'].map(cat => (
+                <li key={cat}>
+                  <button
+                    className={categoryFilter === cat ? 'active' : ''}
+                    onClick={() => { setSearchParams({ category: cat, q: searchQuery }); setIsFilterOpen(false); }}
+                  >
+                    {cat}
+                  </button>
+                </li>
+              ))}
+              <li>
+                <button onClick={() => { setSearchParams({ q: searchQuery }); setIsFilterOpen(false); }} className={!categoryFilter ? 'active' : ''}>
+                  See all
+                </button>
+              </li>
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* Accordion: Brands */}
+      <div className="sidebar-accordion">
+        <div className="accordion-header" onClick={() => toggleAccordion('brands')}>
+          <span>Brands</span>
+          <ChevronDown size={16} className={`accordion-icon ${expandedFilters.brands ? 'expanded' : ''}`} />
+        </div>
+        {expandedFilters.brands && (
+          <div className="accordion-content">
+            {['Samsung', 'Apple', 'Huawei', 'Pocco', 'Lenovo'].map(brand => (
+              <label key={brand} className="filter-checkbox-row">
+                <input
+                  type="checkbox"
+                  checked={selectedBrands.includes(brand)}
+                  onChange={() => handleBrandChange(brand)}
+                />
+                <span>{brand}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Accordion: Features */}
+      <div className="sidebar-accordion">
+        <div className="accordion-header" onClick={() => toggleAccordion('features')}>
+          <span>Features</span>
+          <ChevronDown size={16} className={`accordion-icon ${expandedFilters.features ? 'expanded' : ''}`} />
+        </div>
+        {expandedFilters.features && (
+          <div className="accordion-content">
+            {['Metallic', 'Plastic cover', '8GB Ram', 'Super power', 'Large Memory'].map(feat => (
+              <label key={feat} className="filter-checkbox-row">
+                <input
+                  type="checkbox"
+                  checked={selectedFeatures.includes(feat)}
+                  onChange={() => handleFeatureChange(feat)}
+                />
+                <span>{feat}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Accordion: Price range */}
+      <div className="sidebar-accordion">
+        <div className="accordion-header" onClick={() => toggleAccordion('price')}>
+          <span>Price range</span>
+          <ChevronDown size={16} className={`accordion-icon ${expandedFilters.price ? 'expanded' : ''}`} />
+        </div>
+        {expandedFilters.price && (
+          <div className="accordion-content">
+            <div className="price-slider-track">
+              <div className="price-slider-highlight"></div>
+              <div className="price-slider-handle handle-min"></div>
+              <div className="price-slider-handle handle-max"></div>
+            </div>
+            <form onSubmit={(e) => { handleApplyPrice(e); setIsFilterOpen(false); }} className="price-inputs-row">
+              <div className="price-input-group">
+                <label>Min</label>
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={priceMin}
+                  onChange={e => setPriceMin(e.target.value)}
+                />
+              </div>
+              <div className="price-input-group">
+                <label>Max</label>
+                <input
+                  type="number"
+                  placeholder="999999"
+                  value={priceMax}
+                  onChange={e => setPriceMax(e.target.value)}
+                />
+              </div>
+              <button type="submit" className="price-apply-btn">Apply</button>
+            </form>
+          </div>
+        )}
+      </div>
+
+      {/* Accordion: Condition */}
+      <div className="sidebar-accordion">
+        <div className="accordion-header" onClick={() => toggleAccordion('condition')}>
+          <span>Condition</span>
+          <ChevronDown size={16} className={`accordion-icon ${expandedFilters.condition ? 'expanded' : ''}`} />
+        </div>
+        {expandedFilters.condition && (
+          <div className="accordion-content">
+            {['Any', 'Refurbished', 'Brand new', 'Old items'].map(cond => (
+              <label key={cond} className="filter-checkbox-row">
+                <input
+                  type="radio"
+                  name="condition"
+                  checked={selectedCondition === cond}
+                  onChange={() => { setSelectedCondition(cond); setCurrentPage(1); }}
+                />
+                <span>{cond}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Accordion: Ratings */}
+      <div className="sidebar-accordion">
+        <div className="accordion-header" onClick={() => toggleAccordion('ratings')}>
+          <span>Ratings</span>
+          <ChevronDown size={16} className={`accordion-icon ${expandedFilters.ratings ? 'expanded' : ''}`} />
+        </div>
+        {expandedFilters.ratings && (
+          <div className="accordion-content">
+            {[5, 4, 3, 2].map(starNum => (
+              <label key={starNum} className="filter-checkbox-row pointer" onClick={() => { setSelectedRating(starNum); setCurrentPage(1); }}>
+                <input
+                  type="radio"
+                  name="rating"
+                  checked={selectedRating === starNum}
+                  onChange={() => { }}
+                />
+                <div className="rating-stars-list">
+                  <StarRating rating={starNum} />
+                </div>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <div className="container products-page-container">
       {/* Breadcrumbs */}
-      <div className="breadcrumbs">
+      <div className="breadcrumbs hide-on-mobile">
         <Link to="/">Home</Link>
         <ChevronRight size={14} />
         <Link to="/products">Electronics</Link>
@@ -1297,186 +1777,54 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
         <span className="active-breadcrumb">Summer clothing</span>
       </div>
 
+      {/* Mobile Filter Drawer Overlay */}
+      {isFilterOpen && (
+        <div className="filter-drawer-overlay" onClick={() => setIsFilterOpen(false)} />
+      )}
+
+      {/* Mobile Filter Drawer (Image 1) */}
+      <aside className={`filter-drawer ${isFilterOpen ? 'filter-drawer-open' : ''}`}>
+        <div className="filter-drawer-header">
+          <h3>Filter (3)</h3>
+          <button className="filter-close-btn" onClick={() => setIsFilterOpen(false)}>
+            <X size={20} />
+          </button>
+        </div>
+        <div className="filter-drawer-body">
+          <aside className="products-sidebar-mobile">
+            {sidebarContentMarkup}
+          </aside>
+        </div>
+        <div className="filter-drawer-footer">
+          <button className="btn-primary filter-apply-btn" onClick={() => setIsFilterOpen(false)}>
+            Apply ({totalItems})
+          </button>
+          <button className="btn-outline filter-clear-btn" onClick={() => { clearAllFilters(); setIsFilterOpen(false); }}>
+            Clear All
+          </button>
+        </div>
+      </aside>
+
       <div className="products-layout">
-        
-        {/* Left Side Filter Panel */}
-        <aside className="products-sidebar">
-          
-          {/* Accordion: Category */}
-          <div className="sidebar-accordion">
-            <div className="accordion-header" onClick={() => toggleAccordion('category')}>
-              <span>Category</span>
-              <ChevronDown size={16} className={`accordion-icon ${expandedFilters.category ? 'expanded' : ''}`} />
-            </div>
-            {expandedFilters.category && (
-              <div className="accordion-content">
-                <ul className="accordion-categories-list">
-                  {['Mobile accessory', 'Electronics', 'Smartphones', 'Modern tech'].map(cat => (
-                    <li key={cat}>
-                      <button 
-                        className={categoryFilter === cat ? 'active' : ''}
-                        onClick={() => setSearchParams({ category: cat, q: searchQuery })}
-                      >
-                        {cat}
-                      </button>
-                    </li>
-                  ))}
-                  <li>
-                    <button onClick={() => setSearchParams({ q: searchQuery })} className={!categoryFilter ? 'active' : ''}>
-                      See all
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
 
-          {/* Accordion: Brands */}
-          <div className="sidebar-accordion">
-            <div className="accordion-header" onClick={() => toggleAccordion('brands')}>
-              <span>Brands</span>
-              <ChevronDown size={16} className={`accordion-icon ${expandedFilters.brands ? 'expanded' : ''}`} />
-            </div>
-            {expandedFilters.brands && (
-              <div className="accordion-content">
-                {['Samsung', 'Apple', 'Huawei', 'Pocco', 'Lenovo'].map(brand => (
-                  <label key={brand} className="filter-checkbox-row">
-                    <input 
-                      type="checkbox" 
-                      checked={selectedBrands.includes(brand)}
-                      onChange={() => handleBrandChange(brand)}
-                    />
-                    <span>{brand}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Accordion: Features */}
-          <div className="sidebar-accordion">
-            <div className="accordion-header" onClick={() => toggleAccordion('features')}>
-              <span>Features</span>
-              <ChevronDown size={16} className={`accordion-icon ${expandedFilters.features ? 'expanded' : ''}`} />
-            </div>
-            {expandedFilters.features && (
-              <div className="accordion-content">
-                {['Metallic', 'Plastic cover', '8GB Ram', 'Super power', 'Large Memory'].map(feat => (
-                  <label key={feat} className="filter-checkbox-row">
-                    <input 
-                      type="checkbox" 
-                      checked={selectedFeatures.includes(feat)}
-                      onChange={() => handleFeatureChange(feat)}
-                    />
-                    <span>{feat}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Accordion: Price range */}
-          <div className="sidebar-accordion">
-            <div className="accordion-header" onClick={() => toggleAccordion('price')}>
-              <span>Price range</span>
-              <ChevronDown size={16} className={`accordion-icon ${expandedFilters.price ? 'expanded' : ''}`} />
-            </div>
-            {expandedFilters.price && (
-              <div className="accordion-content">
-                {/* Visual price slider representation */}
-                <div className="price-slider-track">
-                  <div className="price-slider-highlight"></div>
-                  <div className="price-slider-handle handle-min"></div>
-                  <div className="price-slider-handle handle-max"></div>
-                </div>
-                <form onSubmit={handleApplyPrice} className="price-inputs-row">
-                  <div className="price-input-group">
-                    <label>Min</label>
-                    <input 
-                      type="number" 
-                      placeholder="0" 
-                      value={priceMin}
-                      onChange={e => setPriceMin(e.target.value)}
-                    />
-                  </div>
-                  <div className="price-input-group">
-                    <label>Max</label>
-                    <input 
-                      type="number" 
-                      placeholder="999999" 
-                      value={priceMax}
-                      onChange={e => setPriceMax(e.target.value)}
-                    />
-                  </div>
-                  <button type="submit" className="price-apply-btn">Apply</button>
-                </form>
-              </div>
-            )}
-          </div>
-
-          {/* Accordion: Condition */}
-          <div className="sidebar-accordion">
-            <div className="accordion-header" onClick={() => toggleAccordion('condition')}>
-              <span>Condition</span>
-              <ChevronDown size={16} className={`accordion-icon ${expandedFilters.condition ? 'expanded' : ''}`} />
-            </div>
-            {expandedFilters.condition && (
-              <div className="accordion-content">
-                {['Any', 'Refurbished', 'Brand new', 'Old items'].map(cond => (
-                  <label key={cond} className="filter-checkbox-row">
-                    <input 
-                      type="radio" 
-                      name="condition"
-                      checked={selectedCondition === cond}
-                      onChange={() => { setSelectedCondition(cond); setCurrentPage(1); }}
-                    />
-                    <span>{cond}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Accordion: Ratings */}
-          <div className="sidebar-accordion">
-            <div className="accordion-header" onClick={() => toggleAccordion('ratings')}>
-              <span>Ratings</span>
-              <ChevronDown size={16} className={`accordion-icon ${expandedFilters.ratings ? 'expanded' : ''}`} />
-            </div>
-            {expandedFilters.ratings && (
-              <div className="accordion-content">
-                {[5, 4, 3, 2].map(starNum => (
-                  <label key={starNum} className="filter-checkbox-row pointer" onClick={() => { setSelectedRating(starNum); setCurrentPage(1); }}>
-                    <input 
-                      type="radio" 
-                      name="rating"
-                      checked={selectedRating === starNum}
-                      onChange={() => {}}
-                    />
-                    <div className="rating-stars-list">
-                      <StarRating rating={starNum} />
-                    </div>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-
+        {/* Left Side Filter Panel (Desktop Only) */}
+        <aside className="products-sidebar hide-on-mobile">
+          {sidebarContentMarkup}
         </aside>
 
         {/* Right Side Product Listing Area */}
         <section className="products-content-area">
-          
-          {/* Top Toolbar */}
-          <div className="listing-toolbar">
+
+          {/* Top Toolbar (Desktop Only) */}
+          <div className="listing-toolbar hide-on-mobile">
             <div className="toolbar-left">
               <span className="items-count-text">
                 <strong>{totalItems.toLocaleString()}</strong> items in <strong>{categoryFilter || 'All categories'}</strong>
               </span>
               <label className="verified-checkbox-label">
-                <input 
-                  type="checkbox" 
-                  checked={isVerifiedOnly} 
+                <input
+                  type="checkbox"
+                  checked={isVerifiedOnly}
                   onChange={e => { setIsVerifiedOnly(e.target.checked); setCurrentPage(1); }}
                 />
                 <span>Verified only</span>
@@ -1494,15 +1842,15 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
                 <ChevronDown size={14} className="sort-arrow-icon" />
               </div>
               <div className="view-toggle-btns">
-                <button 
-                  className={`toggle-btn ${viewMode === 'grid' ? 'active' : ''}`} 
+                <button
+                  className={`toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
                   onClick={() => setViewMode('grid')}
                   title="Grid View"
                 >
                   <Grid size={18} />
                 </button>
-                <button 
-                  className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`} 
+                <button
+                  className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
                   onClick={() => setViewMode('list')}
                   title="List View"
                 >
@@ -1512,8 +1860,42 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
             </div>
           </div>
 
+          {/* Mobile Toolbar (Image 1) */}
+          <div className="mobile-toolbar show-on-mobile">
+            <div className="mobile-sort-btn-wrapper">
+              <span className="mobile-sort-label">Sort: </span>
+              <select className="mobile-sort-select" value={sortBy} onChange={e => { setSortBy(e.target.value); setCurrentPage(1); }}>
+                <option value="Featured">Newest</option>
+                <option value="price_low">Price: Low</option>
+                <option value="price_high">Price: High</option>
+                <option value="rating">Top Rated</option>
+              </select>
+              <ChevronDown size={14} className="sort-arrow" />
+            </div>
+
+            <button className="mobile-filter-toggle-btn" onClick={() => setIsFilterOpen(true)}>
+              <span>Filter {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}</span>
+              <Settings size={14} />
+            </button>
+
+            <div className="view-toggle-btns-mobile">
+              <button
+                className={`toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                onClick={() => setViewMode('grid')}
+              >
+                <Grid size={18} />
+              </button>
+              <button
+                className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+                onClick={() => setViewMode('list')}
+              >
+                <ListIcon size={18} />
+              </button>
+            </div>
+          </div>
+
           {/* Active Filter Chips Row */}
-          {(selectedBrands.length > 0 || selectedFeatures.length > 0 || selectedCondition !== 'Any' || selectedRating !== null || isVerifiedOnly) && (
+          {(selectedBrands.length > 0 || selectedFeatures.length > 0 || selectedCondition !== 'Any' || selectedRating !== null || isVerifiedOnly || appliedMin !== null || appliedMax !== null) && (
             <div className="active-chips-row">
               {selectedBrands.map(b => (
                 <div key={b} className="filter-chip">
@@ -1545,6 +1927,14 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
                   <button onClick={() => removeChip('verified', true)}>×</button>
                 </div>
               )}
+              {(appliedMin !== null || appliedMax !== null) && (
+                <div className="filter-chip">
+                  <span>
+                    Price: {appliedMin !== null ? `$${appliedMin}` : '$0'} - {appliedMax !== null ? `$${appliedMax}` : 'Max'}
+                  </span>
+                  <button onClick={() => { setPriceMin(''); setPriceMax(''); setAppliedMin(null); setAppliedMax(null); setCurrentPage(1); }}>×</button>
+                </div>
+              )}
               <button className="clear-all-btn" onClick={clearAllFilters}>Clear all filter</button>
             </div>
           )}
@@ -1557,12 +1947,12 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
               <button className="btn-primary" onClick={clearAllFilters}>Reset Filters</button>
             </div>
           ) : viewMode === 'grid' ? (
-            
+
             // GRID VIEW LAYOUT (3 Columns)
             <div className="products-grid-view">
               {paginatedProducts.map(product => (
-                <div key={product.id} className="grid-product-card">
-                  <div className="grid-img-wrap" onClick={() => navigate(`/product/${product.id}`)}>
+                <div key={product.id} className="grid-product-card" onClick={() => navigate(`/product/${product.id}`)}>
+                  <div className="grid-img-wrap">
                     <img src={product.img} alt={product.name} />
                   </div>
                   <div className="grid-details-box">
@@ -1573,7 +1963,7 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
                           <span className="grid-old-price">${product.oldPrice.toFixed(2)}</span>
                         )}
                       </div>
-                      <button 
+                      <button
                         className={`grid-wishlist-btn ${wishlist.includes(product.id) ? 'active' : ''}`}
                         onClick={(e) => { e.stopPropagation(); toggleWishlist(product.id); }}
                       >
@@ -1584,10 +1974,10 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
                       <StarRating rating={product.rating} />
                       <span className="rating-score-text">{product.rating}</span>
                     </div>
-                    <p className="grid-product-name" onClick={() => navigate(`/product/${product.id}`)} style={{ cursor: 'pointer' }}>{product.name}</p>
+                    <p className="grid-product-name" style={{ cursor: 'pointer' }}>{product.name}</p>
                     <button
                       className="grid-add-cart-btn"
-                      onClick={() => addToCart(product)}
+                      onClick={(e) => { e.stopPropagation(); addToCart(product); }}
                     >
                       <ShoppingCart size={14} /> Add to cart
                     </button>
@@ -1596,25 +1986,25 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
               ))}
             </div>
           ) : (
-            
+
             // LIST VIEW LAYOUT (Vertical Rows)
             <div className="products-list-view">
               {paginatedProducts.map(product => (
-                <div key={product.id} className="list-product-row">
-                  <div className="list-img-wrap" onClick={() => navigate(`/product/${product.id}`)}>
+                <div key={product.id} className="list-product-row" onClick={() => navigate(`/product/${product.id}`)}>
+                  <div className="list-img-wrap">
                     <img src={product.img} alt={product.name} />
                   </div>
                   <div className="list-info-wrap">
                     <div className="list-title-row">
                       <h3 className="list-product-title">{product.name}</h3>
-                      <button 
+                      <button
                         className={`list-wishlist-btn ${wishlist.includes(product.id) ? 'active' : ''}`}
                         onClick={(e) => { e.stopPropagation(); toggleWishlist(product.id); }}
                       >
                         <Heart size={18} fill={wishlist.includes(product.id) ? 'red' : 'none'} color={wishlist.includes(product.id) ? 'red' : '#0d6efd'} />
                       </button>
                     </div>
-                    
+
                     <div className="list-price-row">
                       <span className="list-price">${product.price.toFixed(2)}</span>
                       {product.oldPrice && (
@@ -1636,7 +2026,7 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
                       <button className="view-details-link" onClick={() => navigate(`/product/${product.id}`)}>
                         View details
                       </button>
-                      <button className="list-add-cart-btn" onClick={() => addToCart(product)}>
+                      <button className="list-add-cart-btn" onClick={(e) => { e.stopPropagation(); addToCart(product); }}>
                         <ShoppingCart size={15} /> Add to cart
                       </button>
                     </div>
@@ -1658,7 +2048,7 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
                 </select>
               </div>
               <div className="pagination-nav-btns">
-                <button 
+                <button
                   className="page-nav-btn"
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
@@ -1666,7 +2056,7 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
                   &lt;
                 </button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
-                  <button 
+                  <button
                     key={pageNum}
                     className={`page-num-btn ${currentPage === pageNum ? 'active' : ''}`}
                     onClick={() => setCurrentPage(pageNum)}
@@ -1674,7 +2064,7 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
                     {pageNum}
                   </button>
                 ))}
-                <button 
+                <button
                   className="page-nav-btn"
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
@@ -1687,6 +2077,24 @@ function ProductListingPage({ wishlist, toggleWishlist, navigate, addToCart }) {
 
         </section>
       </div>
+
+      {/* You may also like Section (Image 1) */}
+      <section className="listing-you-may-like-section">
+        <h2 className="section-title mb-16">You may also like</h2>
+        <div className="listing-you-may-like-grid">
+          {youMayLike.map(item => (
+            <div key={item.id} className="you-may-like-card" onClick={() => navigate(`/product/${item.id}`)}>
+              <div className="you-may-like-img-wrap">
+                <img src={item.img} alt={item.name} />
+              </div>
+              <div className="you-may-like-info">
+                <p className="you-may-like-price">${item.price.toFixed(2)}</p>
+                <p className="you-may-like-name">{item.name}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* Newsletter Section inside Listing Page */}
       <section className="newsletter-section listing-newsletter">
@@ -1715,6 +2123,7 @@ function CartPage({
   cartTotal,
   cartCount,
   savedForLater,
+  setSavedForLater,
   removeFromCart,
   setCartQty,
   saveForLater,
@@ -1734,6 +2143,10 @@ function CartPage({
       setDiscount(0);
       alert('Invalid coupon code. Try SAVE60 or SAVE10');
     }
+  };
+
+  const handleQtyChange = (id, currentQty, delta) => {
+    setCartQty(id, Math.max(1, currentQty + delta));
   };
 
   const tax = Math.max(0, (cartTotal - discount) * 0.01);
@@ -1777,9 +2190,15 @@ function CartPage({
                           </p>
                           <p className="cart-item-card-seller">Seller: {item.seller || 'Artel Market'}</p>
                         </div>
-                        <span className="cart-item-card-price">${item.price.toFixed(2)}</span>
+                        <span className="cart-item-card-price hide-on-mobile">${item.price.toFixed(2)}</span>
+
+                        <button className="cart-item-more-btn show-on-mobile" onClick={() => saveForLater(item.id)}>
+                          <MoreVertical size={20} color="#8b96a5" />
+                        </button>
                       </div>
-                      <div className="cart-item-card-actions">
+
+                      {/* Desktop actions row */}
+                      <div className="cart-item-card-actions hide-on-mobile">
                         <div className="cart-qty-select-wrap">
                           <label>Qty:</label>
                           <select
@@ -1799,6 +2218,16 @@ function CartPage({
                           Save for later
                         </button>
                       </div>
+
+                      {/* Mobile actions & Qty counter row */}
+                      <div className="cart-item-card-actions-mobile show-on-mobile">
+                        <div className="cart-qty-controls">
+                          <button onClick={() => handleQtyChange(item.id, item.qty, -1)}><Minus size={13} /></button>
+                          <span>{item.qty}</span>
+                          <button onClick={() => handleQtyChange(item.id, item.qty, 1)}><Plus size={13} /></button>
+                        </div>
+                        <span className="cart-item-card-price-mobile">${item.price.toFixed(2)}</span>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -1813,7 +2242,7 @@ function CartPage({
                 </div>
               </div>
 
-              <div className="cart-trust-badges">
+              <div className="cart-trust-badges hide-on-mobile">
                 <div className="trust-badge">
                   <Lock size={18} />
                   <span>Secure payment</span>
@@ -1830,7 +2259,7 @@ function CartPage({
             </div>
 
             <aside className="cart-summary-sidebar">
-              <div className="cart-coupon-box">
+              <div className="cart-coupon-box hide-on-mobile">
                 <h4>Have a coupon?</h4>
                 <div className="cart-coupon-row">
                   <input
@@ -1845,7 +2274,7 @@ function CartPage({
 
               <div className="cart-price-breakdown">
                 <div className="cart-price-row">
-                  <span>Subtotal:</span>
+                  <span>Items ({cartCount}):</span>
                   <span>${cartTotal.toFixed(2)}</span>
                 </div>
                 {discount > 0 && (
@@ -1866,10 +2295,10 @@ function CartPage({
               </div>
 
               <button className="cart-checkout-green" onClick={() => alert('Checkout coming soon!')}>
-                Checkout
+                Checkout ({cartCount} items)
               </button>
 
-              <div className="cart-payment-icons">
+              <div className="cart-payment-icons hide-on-mobile">
                 <span className="pay-icon">AMEX</span>
                 <span className="pay-icon">MC</span>
                 <span className="pay-icon">PayPal</span>
@@ -1883,7 +2312,9 @@ function CartPage({
         {savedForLater.length > 0 && (
           <section className="saved-for-later-section">
             <h2 className="saved-section-title">Saved for later</h2>
-            <div className="saved-products-grid">
+
+            {/* Desktop grid */}
+            <div className="saved-products-grid hide-on-mobile">
               {savedForLater.map(item => (
                 <div key={item.id} className="saved-product-card">
                   <div className="saved-product-img" onClick={() => navigate(`/product/${item.id}`)}>
@@ -1897,10 +2328,31 @@ function CartPage({
                 </div>
               ))}
             </div>
+
+            {/* Mobile list (Image 2) */}
+            <div className="saved-products-list-mobile show-on-mobile">
+              {savedForLater.map(item => (
+                <div key={item.id} className="saved-item-row-mobile">
+                  <img src={item.img} alt={item.name} className="saved-item-img-mobile" onClick={() => navigate(`/product/${item.id}`)} />
+                  <div className="saved-item-info-mobile">
+                    <div className="saved-item-top-mobile">
+                      <div>
+                        <h3 className="saved-item-title-mobile" onClick={() => navigate(`/product/${item.id}`)}>{item.name}</h3>
+                        <p className="saved-item-price-mobile">${item.price.toFixed(2)}</p>
+                      </div>
+                    </div>
+                    <div className="saved-item-actions-mobile">
+                      <button className="saved-move-btn-mobile" onClick={() => moveSavedToCart(item)}>Move to cart</button>
+                      <button className="saved-remove-btn-mobile" onClick={() => setSavedForLater(prev => prev.filter(i => i.id !== item.id))}>Remove</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </section>
         )}
 
-        <section className="cart-promo-banner">
+        <section className="cart-promo-banner hide-on-mobile">
           <div className="cart-promo-content">
             <div>
               <h3>Super discount on more than 100 USD</h3>
@@ -1921,8 +2373,8 @@ function ProductDetailPage({ addToCart, wishlist, toggleWishlist, navigate }) {
   const { id } = useParams();
   const product = getProductById(id);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedSize, setSelectedSize] = useState('');
-  const [selectedColor, setSelectedColor] = useState('');
+  const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] || 'Medium');
+  const [selectedColor, setSelectedColor] = useState(product?.colors?.[0] || 'Blue');
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
 
@@ -1933,7 +2385,7 @@ function ProductDetailPage({ addToCart, wishlist, toggleWishlist, navigate }) {
       setSelectedColor(product.colors?.[0] || 'Blue');
       setQuantity(1);
     }
-  }, [id]);
+  }, [id, product]);
 
   if (!product) {
     return (
@@ -2169,6 +2621,405 @@ function ProductDetailPage({ addToCart, wishlist, toggleWishlist, navigate }) {
             <button className="cart-promo-btn" onClick={() => navigate('/products')}>Shop now</button>
           </div>
         </section>
+      </div>
+    </main>
+  );
+}
+
+// ----------------------------------------------------
+// LOGIN PAGE COMPONENT
+// ----------------------------------------------------
+function LoginPage({ navigate, handleLogin, currentUser }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (currentUser) navigate('/profile');
+  }, [currentUser, navigate]);
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    if (!email || !password) {
+      setError('Please fill in all fields.');
+      return;
+    }
+    const success = handleLogin(email, password);
+    if (success) {
+      navigate('/profile');
+    } else {
+      setError('Invalid email or password.');
+    }
+  };
+
+  return (
+    <main className="auth-page-wrap">
+      <div className="auth-card">
+        <h2 className="auth-title">Welcome Back</h2>
+        <p className="auth-subtitle">Sign in to access your BrandEStore profile</p>
+        
+        {error && <div className="auth-error-msg">{error}</div>}
+        
+        <form onSubmit={onSubmit} className="auth-form">
+          <div className="auth-input-group">
+            <label>Email Address</label>
+            <input 
+              type="email" 
+              placeholder="name@example.com" 
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required 
+            />
+          </div>
+          <div className="auth-input-group">
+            <label>Password</label>
+            <input 
+              type="password" 
+              placeholder="••••••••" 
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required 
+            />
+          </div>
+          <button type="submit" className="btn-primary auth-submit-btn">
+            Log In
+          </button>
+        </form>
+        <p className="auth-footer-text">
+          Don't have an account? <span className="auth-link" onClick={() => navigate('/register')}>Register here</span>
+        </p>
+      </div>
+    </main>
+  );
+}
+
+// ----------------------------------------------------
+// REGISTER PAGE COMPONENT
+// ----------------------------------------------------
+function RegisterPage({ navigate, handleRegister, currentUser }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (currentUser) navigate('/profile');
+  }, [currentUser, navigate]);
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    if (!name || !email || !password) {
+      setError('Please fill in all fields.');
+      return;
+    }
+    const success = handleRegister(name, email, password);
+    if (success) {
+      navigate('/profile');
+    } else {
+      setError('Registration failed.');
+    }
+  };
+
+  return (
+    <main className="auth-page-wrap">
+      <div className="auth-card">
+        <h2 className="auth-title">Create Account</h2>
+        <p className="auth-subtitle">Join BrandEStore for a personalized shopping experience</p>
+        
+        {error && <div className="auth-error-msg">{error}</div>}
+        
+        <form onSubmit={onSubmit} className="auth-form">
+          <div className="auth-input-group">
+            <label>Full Name</label>
+            <input 
+              type="text" 
+              placeholder="John Doe" 
+              value={name}
+              onChange={e => setName(e.target.value)}
+              required 
+            />
+          </div>
+          <div className="auth-input-group">
+            <label>Email Address</label>
+            <input 
+              type="email" 
+              placeholder="name@example.com" 
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required 
+            />
+          </div>
+          <div className="auth-input-group">
+            <label>Password</label>
+            <input 
+              type="password" 
+              placeholder="••••••••" 
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required 
+            />
+          </div>
+          <button type="submit" className="btn-primary auth-submit-btn">
+            Create Account
+          </button>
+        </form>
+        <p className="auth-footer-text">
+          Already have an account? <span className="auth-link" onClick={() => navigate('/login')}>Log in here</span>
+        </p>
+      </div>
+    </main>
+  );
+}
+
+// ----------------------------------------------------
+// PROFILE PAGE COMPONENT
+// ----------------------------------------------------
+function ProfilePage({ currentUser, handleLogout, handleUpdateProfile, navigate, wishlist }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState('details');
+
+  // Form states
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [bio, setBio] = useState('');
+
+  // Sync form states with currentUser
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/login');
+      return;
+    }
+    setName(currentUser.name || '');
+    setEmail(currentUser.email || '');
+    setPhone(currentUser.phone || '');
+    setAddress(currentUser.address || '');
+    setBio(currentUser.bio || '');
+  }, [currentUser, navigate]);
+
+  if (!currentUser) return null;
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    handleUpdateProfile({ name, email, phone, address, bio });
+    setIsEditing(false);
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleUpdateProfile({ avatar: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Mock Order History data
+  const mockOrders = [
+    { id: 'ORD-98234', date: 'June 02, 2026', total: 1097.50, status: 'In Transit', items: 'Canon Camera EOS 2000 x1, Smart Watch Series 7 x1' },
+    { id: 'ORD-98012', date: 'May 14, 2026', total: 99.50, status: 'Delivered', items: 'GoPro HERO6 4K Action Camera x1' }
+  ];
+
+  return (
+    <main className="profile-page-wrap">
+      <div className="container profile-container">
+        
+        {/* Profile Banner Card */}
+        <div className="profile-banner-card">
+          <div className="profile-banner-bg" style={{ backgroundImage: "linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1000&auto=format&fit=crop&q=80')" }}></div>
+          <div className="profile-banner-content">
+            <div className="profile-avatar-wrapper">
+              <div className="profile-avatar">
+                {currentUser.avatar ? (
+                  <img src={currentUser.avatar} alt="Profile" />
+                ) : (
+                  <User size={48} color="#8b96a5" />
+                )}
+                <label className="avatar-upload-overlay" htmlFor="avatar-file-input">
+                  <Camera size={20} color="white" />
+                  <span>Upload</span>
+                </label>
+              </div>
+              <input 
+                type="file" 
+                id="avatar-file-input" 
+                accept="image/*" 
+                onChange={handleImageUpload} 
+                style={{ display: 'none' }} 
+              />
+            </div>
+            <div className="profile-meta-info">
+              <h2>{currentUser.name}</h2>
+              <p>{currentUser.email}</p>
+            </div>
+            <button className="btn-outline logout-btn" onClick={handleLogout}>Log out</button>
+          </div>
+        </div>
+
+        {/* Profile Tabs & Details */}
+        <div className="profile-content-layout">
+          <aside className="profile-tabs-sidebar">
+            <button 
+              className={`profile-tab-btn ${activeTab === 'details' ? 'active' : ''}`}
+              onClick={() => setActiveTab('details')}
+            >
+              <User size={16} /> Account Details
+            </button>
+            <button 
+              className={`profile-tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
+              onClick={() => setActiveTab('orders')}
+            >
+              <ShoppingBag size={16} /> Order History
+            </button>
+            <button 
+              className={`profile-tab-btn ${activeTab === 'wishlist' ? 'active' : ''}`}
+              onClick={() => setActiveTab('wishlist')}
+            >
+              <Heart size={16} /> My Wishlist ({wishlist.length})
+            </button>
+          </aside>
+
+          <section className="profile-main-section">
+            
+            {/* Account Details Tab */}
+            {activeTab === 'details' && (
+              <div className="profile-details-card">
+                <div className="card-header-row">
+                  <h3>Personal Information</h3>
+                  {!isEditing && (
+                    <button className="btn-outline edit-profile-btn" onClick={() => setIsEditing(true)}>
+                      Edit Profile
+                    </button>
+                  )}
+                </div>
+
+                {isEditing ? (
+                  <form onSubmit={handleSave} className="profile-edit-form">
+                    <div className="form-grid">
+                      <div className="input-group">
+                        <label>Full Name</label>
+                        <input type="text" value={name} onChange={e => setName(e.target.value)} required />
+                      </div>
+                      <div className="input-group">
+                        <label>Email Address</label>
+                        <input type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+                      </div>
+                      <div className="input-group">
+                        <label>Phone Number</label>
+                        <input type="text" value={phone} onChange={e => setPhone(e.target.value)} />
+                      </div>
+                      <div className="input-group">
+                        <label>Address</label>
+                        <input type="text" value={address} onChange={e => setAddress(e.target.value)} />
+                      </div>
+                      <div className="input-group full-width">
+                        <label>Short Bio</label>
+                        <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} />
+                      </div>
+                    </div>
+                    <div className="form-actions">
+                      <button type="submit" className="btn-primary">Save Changes</button>
+                      <button type="button" className="btn-outline" onClick={() => setIsEditing(false)}>Cancel</button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="profile-info-grid">
+                    <div className="info-row">
+                      <span className="info-label">Full Name:</span>
+                      <span className="info-value">{currentUser.name}</span>
+                    </div>
+                    <div className="info-row">
+                      <span className="info-label">Email:</span>
+                      <span className="info-value">{currentUser.email}</span>
+                    </div>
+                    <div className="info-row">
+                      <span className="info-label">Phone:</span>
+                      <span className="info-value">{currentUser.phone || 'Not specified'}</span>
+                    </div>
+                    <div className="info-row">
+                      <span className="info-label">Address:</span>
+                      <span className="info-value">{currentUser.address || 'Not specified'}</span>
+                    </div>
+                    <div className="info-row full-width">
+                      <span className="info-label">About Me:</span>
+                      <p className="info-value bio-text">{currentUser.bio || 'Add a short bio to let suppliers know more about you.'}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Order History Tab */}
+            {activeTab === 'orders' && (
+              <div className="profile-orders-card">
+                <h3>Your Orders</h3>
+                <div className="orders-table-wrapper">
+                  {mockOrders.length > 0 ? (
+                    <table className="orders-table">
+                      <thead>
+                        <tr>
+                          <th>Order ID</th>
+                          <th>Date</th>
+                          <th>Items</th>
+                          <th>Total</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {mockOrders.map(order => (
+                          <tr key={order.id}>
+                            <td><strong>{order.id}</strong></td>
+                            <td>{order.date}</td>
+                            <td className="order-items-td">{order.items}</td>
+                            <td>${order.total.toFixed(2)}</td>
+                            <td>
+                              <span className={`status-badge ${order.status.toLowerCase().replace(' ', '-')}`}>
+                                {order.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p className="no-orders-text">You haven't placed any orders yet.</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Wishlist Tab */}
+            {activeTab === 'wishlist' && (
+              <div className="profile-wishlist-card">
+                <h3>My Wishlist</h3>
+                {wishlist.length > 0 ? (
+                  <div className="wishlist-items-grid">
+                    {wishlist.map(id => {
+                      const product = getProductById(id) || getAllProducts().find(p => p.id === id);
+                      if (!product) return null;
+                      return (
+                        <div key={product.id} className="wishlist-item" onClick={() => navigate(`/product/${product.id}`)}>
+                          <img src={product.img} alt={product.name} />
+                          <div className="wishlist-item-meta">
+                            <p className="wl-price">${product.price.toFixed(2)}</p>
+                            <p className="wl-name">{product.name}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="no-orders-text">Your wishlist is empty.</p>
+                )}
+              </div>
+            )}
+
+          </section>
+        </div>
+
       </div>
     </main>
   );
