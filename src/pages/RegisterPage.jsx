@@ -5,22 +5,27 @@ export default function RegisterPage({ navigate, handleRegister, currentUser }) 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (currentUser) navigate('/profile');
   }, [currentUser, navigate]);
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     if (!name || !email || !password) {
       setError('Please fill in all fields.');
       return;
     }
-    const success = handleRegister(name, email, password);
-    if (success) {
+    setIsLoading(true);
+    setError('');
+    
+    const res = await handleRegister(name, email, password);
+    setIsLoading(false);
+    if (res.success) {
       navigate('/profile');
     } else {
-      setError('Registration failed.');
+      setError(res.message || 'Registration failed.');
     }
   };
 
@@ -40,6 +45,7 @@ export default function RegisterPage({ navigate, handleRegister, currentUser }) 
               placeholder="John Doe" 
               value={name}
               onChange={e => setName(e.target.value)}
+              disabled={isLoading}
               required 
             />
           </div>
@@ -50,6 +56,7 @@ export default function RegisterPage({ navigate, handleRegister, currentUser }) 
               placeholder="name@example.com" 
               value={email}
               onChange={e => setEmail(e.target.value)}
+              disabled={isLoading}
               required 
             />
           </div>
@@ -60,11 +67,12 @@ export default function RegisterPage({ navigate, handleRegister, currentUser }) 
               placeholder="••••••••" 
               value={password}
               onChange={e => setPassword(e.target.value)}
+              disabled={isLoading}
               required 
             />
           </div>
-          <button type="submit" className="btn-primary auth-submit-btn">
-            Create Account
+          <button type="submit" className="btn-primary auth-submit-btn" disabled={isLoading}>
+            {isLoading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
         <p className="auth-footer-text">

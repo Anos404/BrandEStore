@@ -1,25 +1,30 @@
 import React, { useState, useEffect } from 'react';
 
 export default function LoginPage({ navigate, handleLogin, currentUser }) {
-  const [email, setEmail] = useState('');
+  const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (currentUser) navigate('/profile');
   }, [currentUser, navigate]);
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!usernameOrEmail || !password) {
       setError('Please fill in all fields.');
       return;
     }
-    const success = handleLogin(email, password);
-    if (success) {
+    setIsLoading(true);
+    setError('');
+    
+    const res = await handleLogin(usernameOrEmail, password);
+    setIsLoading(false);
+    if (res.success) {
       navigate('/profile');
     } else {
-      setError('Invalid email or password.');
+      setError(res.message || 'Invalid username/email or password.');
     }
   };
 
@@ -33,12 +38,13 @@ export default function LoginPage({ navigate, handleLogin, currentUser }) {
         
         <form onSubmit={onSubmit} className="auth-form">
           <div className="auth-input-group">
-            <label>Email Address</label>
+            <label>Username or Email</label>
             <input 
-              type="email" 
-              placeholder="name@example.com" 
-              value={email}
-              onChange={e => setEmail(e.target.value)}
+              type="text" 
+              placeholder="e.g. johnd or name@example.com" 
+              value={usernameOrEmail}
+              onChange={e => setUsernameOrEmail(e.target.value)}
+              disabled={isLoading}
               required 
             />
           </div>
@@ -49,13 +55,15 @@ export default function LoginPage({ navigate, handleLogin, currentUser }) {
               placeholder="••••••••" 
               value={password}
               onChange={e => setPassword(e.target.value)}
+              disabled={isLoading}
               required 
             />
           </div>
-          <button type="submit" className="btn-primary auth-submit-btn">
-            Log In
+          <button type="submit" className="btn-primary auth-submit-btn" disabled={isLoading}>
+            {isLoading ? 'Logging In...' : 'Log In'}
           </button>
         </form>
+
         <p className="auth-footer-text">
           Don't have an account? <span className="auth-link" onClick={() => navigate('/register')}>Register here</span>
         </p>

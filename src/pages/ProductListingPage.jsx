@@ -22,6 +22,7 @@ export default function ProductListingPage({ wishlist, toggleWishlist, navigate,
   const searchQuery = searchParams.get('q') || '';
   const categoryFilter = searchParams.get('category') || '';
   const brandParam = searchParams.get('brand') || '';
+  const offersParam = searchParams.get('offers') === 'true';
 
   // 2. Local filters states
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -142,6 +143,11 @@ export default function ProductListingPage({ wishlist, toggleWishlist, navigate,
       return false;
     }
 
+    // Offers Filter (Hot offers)
+    if (offersParam && !product.oldPrice) {
+      return false;
+    }
+
     // 2. Category Filter
     if (categoryFilter && categoryFilter !== 'All category' && product.category !== categoryFilter) {
       return false;
@@ -225,7 +231,7 @@ export default function ProductListingPage({ wishlist, toggleWishlist, navigate,
         {expandedFilters.category && (
           <div className="accordion-content">
             <ul className="accordion-categories-list">
-              {['Mobile accessory', 'Electronics', 'Smartphones', 'Modern tech'].map(cat => (
+              {['Clothes and wear', 'Home interiors', 'Electronics', 'Smartphones', 'Mobile accessory', 'Modern tech'].map(cat => (
                 <li key={cat}>
                   <button
                     className={categoryFilter === cat ? 'active' : ''}
@@ -383,11 +389,21 @@ export default function ProductListingPage({ wishlist, toggleWishlist, navigate,
       <div className="breadcrumbs hide-on-mobile">
         <Link to="/">Home</Link>
         <ChevronRight size={14} />
-        <Link to="/products">Electronics</Link>
-        <ChevronRight size={14} />
-        <Link to="/products">Mobile accessory</Link>
-        <ChevronRight size={14} />
-        <span className="active-breadcrumb">Summer clothing</span>
+        {categoryFilter ? (
+          <>
+            <Link to="/products">Products</Link>
+            <ChevronRight size={14} />
+            <span className="active-breadcrumb">{categoryFilter}</span>
+          </>
+        ) : offersParam ? (
+          <>
+            <Link to="/products">Products</Link>
+            <ChevronRight size={14} />
+            <span className="active-breadcrumb">Hot Offers</span>
+          </>
+        ) : (
+          <span className="active-breadcrumb">All Products</span>
+        )}
       </div>
 
       {/* Mobile Filter Drawer Overlay */}
@@ -432,7 +448,7 @@ export default function ProductListingPage({ wishlist, toggleWishlist, navigate,
           <div className="listing-toolbar hide-on-mobile">
             <div className="toolbar-left">
               <span className="items-count-text">
-                <strong>{totalItems.toLocaleString()}</strong> items in <strong>{categoryFilter || 'All categories'}</strong>
+                <strong>{totalItems.toLocaleString()}</strong> items in <strong>{categoryFilter ? categoryFilter : offersParam ? 'Hot Offers' : 'All categories'}</strong>
               </span>
               <label className="verified-checkbox-label">
                 <input

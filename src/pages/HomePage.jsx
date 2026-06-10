@@ -7,7 +7,16 @@ import {
   BarChart2,
   ChevronDown,
   Mail,
-  Package
+  Package,
+  Car,
+  Shirt,
+  Home as HomeIcon,
+  Laptop,
+  Wrench,
+  Compass,
+  PawPrint,
+  Settings2,
+  Grid as GridIcon
 } from 'lucide-react';
 import Countdown from '../components/Countdown';
 import {
@@ -19,6 +28,11 @@ import {
   services,
   regions
 } from '../data/mockData';
+
+// Import local category banner images
+import clothCategoryImg from '../IMAGES/cloth/1.jpg';
+import techCategoryImg from '../IMAGES/tech/6.jpg';
+import interiorCategoryImg from '../IMAGES/interior/1.jpg';
 
 export default function HomePage({ navigate, addToCart, currentUser, handleLogout }) {
   const [selectedCategory, setSelectedCategory] = useState('Automobiles');
@@ -122,6 +136,89 @@ export default function HomePage({ navigate, addToCart, currentUser, handleLogou
                   <span className="badge-discount">{item.discount}</span>
                 </button>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Visual Shop by Category Section */}
+      <section className="section categories-section">
+        <div className="container">
+          <h2 className="section-title mb-16">Shop by Category</h2>
+
+          <div className="categories-grid-layout">
+            {/* Featured Category: Clothes */}
+            <div
+              className="category-card-featured card-cloth"
+              style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.45)), url(${clothCategoryImg})` }}
+              onClick={() => navigate('/products?category=Clothes%20and%20wear')}
+            >
+              <div className="featured-card-content">
+                <div className="featured-card-icon-wrap">
+                  <Shirt size={24} color="#ffffff" />
+                </div>
+                <h3 className="featured-card-title">Clothes & Wear</h3>
+                <p className="featured-card-subtitle">Trending fashion & apparel</p>
+                <span className="featured-card-link">Explore Now &rarr;</span>
+              </div>
+            </div>
+
+            {/* Featured Category: Electronics */}
+            <div
+              className="category-card-featured card-tech"
+              style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.45)), url(${techCategoryImg})` }}
+              onClick={() => navigate('/products?category=Electronics')}
+            >
+              <div className="featured-card-content">
+                <div className="featured-card-icon-wrap">
+                  <Laptop size={24} color="#ffffff" />
+                </div>
+                <h3 className="featured-card-title">Computer & Tech</h3>
+                <p className="featured-card-subtitle">Laptops, gadgets & tech</p>
+                <span className="featured-card-link">Explore Now &rarr;</span>
+              </div>
+            </div>
+
+            {/* Featured Category: Interiors */}
+            <div
+              className="category-card-featured card-interior"
+              style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.45)), url(${interiorCategoryImg})` }}
+              onClick={() => navigate('/products?category=Home%20interiors')}
+            >
+              <div className="featured-card-content">
+                <div className="featured-card-icon-wrap">
+                  <HomeIcon size={24} color="#ffffff" />
+                </div>
+                <h3 className="featured-card-title">Home Interiors</h3>
+                <p className="featured-card-subtitle">Modern furniture & decor</p>
+                <span className="featured-card-link">Explore Now &rarr;</span>
+              </div>
+            </div>
+
+            {/* Other Categories Mini Grid */}
+            <div className="categories-mini-grid">
+              {[
+                { name: 'Automobiles', icon: Car, search: 'Automobiles', color: '#e8f0fe', iconColor: '#1a73e8' },
+                { name: 'Tools & Equipments', icon: Wrench, search: 'Tools, equipments', color: '#fef7e0', iconColor: '#f9ab00' },
+                { name: 'Sports & Outdoor', icon: Compass, search: 'Sports and outdoor', color: '#e6f4ea', iconColor: '#1e8e3e' },
+                { name: 'Animal & Pets', icon: PawPrint, search: 'Animal and pets', color: '#fce8e6', iconColor: '#d93025' },
+                { name: 'Machinery Tools', icon: Settings2, search: 'Machinery tools', color: '#f3e8fd', iconColor: '#a142f4' },
+                { name: 'All Categories', icon: GridIcon, search: '', color: '#eff2f4', iconColor: '#5f6368' },
+              ].map((cat, idx) => {
+                const IconComponent = cat.icon;
+                return (
+                  <div
+                    key={idx}
+                    className="category-mini-card"
+                    onClick={() => navigate(cat.search ? `/products?category=${encodeURIComponent(cat.search)}` : '/products')}
+                  >
+                    <div className="mini-card-icon-wrap" style={{ backgroundColor: cat.color }}>
+                      <IconComponent size={20} color={cat.iconColor} />
+                    </div>
+                    <span className="mini-card-name">{cat.name}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

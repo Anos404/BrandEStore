@@ -47,6 +47,14 @@ export default function Header({
   const [searchInput, setSearchInput] = useState('');
   const [searchCategory, setSearchCategory] = useState('All category');
   const [isCategorySelectOpen, setIsCategorySelectOpen] = useState(false);
+  const [isNavCategoryOpen, setIsNavCategoryOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+
+  // Close nav dropdowns on navigation change
+  useEffect(() => {
+    setIsNavCategoryOpen(false);
+    setIsHelpOpen(false);
+  }, [location.pathname, location.search]);
 
   // Sync search input with query params if any
   useEffect(() => {
@@ -408,19 +416,44 @@ export default function Header({
       <nav className="navbar-sub hide-on-mobile">
         <div className="container navbar-inner">
           <div className="navbar-left">
-            <button className="navbar-all-btn" onClick={() => navigate('/products')}>
-              <Menu size={18} />
-              <span>All category</span>
-            </button>
+            <div className="navbar-all-wrapper" style={{ position: 'relative' }}>
+              <button className="navbar-all-btn" onClick={() => setIsNavCategoryOpen(!isNavCategoryOpen)}>
+                <Menu size={18} />
+                <span>All category</span>
+              </button>
+              {isNavCategoryOpen && (
+                <ul className="nav-category-dropdown">
+                  {['Clothes and wear', 'Home interiors', 'Electronics', 'Smartphones', 'Mobile accessory', 'Modern tech'].map(cat => (
+                    <li key={cat} onClick={() => {
+                      navigate(`/products?category=${encodeURIComponent(cat)}`);
+                      setIsNavCategoryOpen(false);
+                    }}>
+                      {cat}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <ul className="navbar-links">
-              <li><Link to="/products">Hot offers</Link></li>
-              <li><Link to="/products">Gift boxes</Link></li>
-              <li><Link to="/products">Projects</Link></li>
-              <li><Link to="/products">Menu item</Link></li>
-              <li>
-                <span className="has-dropdown" style={{ cursor: 'pointer' }} onClick={() => navigate('/products')}>
+              <li><Link to="/products?offers=true">Hot offers</Link></li>
+              <li><Link to="/products?category=Home%20interiors">Gift boxes</Link></li>
+              <li><Link to="/products?category=Electronics">Projects</Link></li>
+              <li><Link to="/products?category=Smartphones">Smartphones</Link></li>
+              <li style={{ position: 'relative' }}>
+                <span 
+                  className="has-dropdown" 
+                  style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} 
+                  onClick={() => setIsHelpOpen(!isHelpOpen)}
+                >
                   Help <ChevronDown size={12} />
                 </span>
+                {isHelpOpen && (
+                  <ul className="nav-category-dropdown" style={{ left: 'auto', right: 0 }}>
+                    <li onClick={() => { setIsHelpOpen(false); navigate('/profile'); }}>My Profile</li>
+                    <li onClick={() => { setIsHelpOpen(false); navigate('/cart'); }}>My Cart</li>
+                    <li onClick={() => { setIsHelpOpen(false); alert('Customer support: support@brandestore.com'); }}>Contact Support</li>
+                  </ul>
+                )}
               </li>
             </ul>
           </div>

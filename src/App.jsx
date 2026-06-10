@@ -36,36 +36,155 @@ export default function App() {
     }
   }, [currentUser]);
 
-  const handleLogin = (email, password) => {
-    if (email && password) {
-      const defaultUser = {
-        name: email.split('@')[0],
-        email: email,
-        phone: '+1 (555) 019-2834',
-        address: '123 E-Commerce Way, Tech City, TC 94043',
-        bio: 'Tech enthusiast and frequent shopper.',
-        avatar: null
-      };
-      setCurrentUser(defaultUser);
-      return true;
+  const handleLogin = async (usernameOrEmail, password) => {
+    try {
+      // 1. Try FakeStoreAPI auth login first
+      const res = await fetch('https://fakestoreapi.com/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: usernameOrEmail,
+          password: password
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const token = data.token;
+        
+        // 2. Fetch all users from FakeStoreAPI to find matching details
+        const usersRes = await fetch('https://fakestoreapi.com/users');
+        if (usersRes.ok) {
+          const users = await usersRes.json();
+          const apiUser = users.find(u => u.username === usernameOrEmail);
+          if (apiUser) {
+            const mappedUser = {
+              name: `${apiUser.name.firstname.charAt(0).toUpperCase() + apiUser.name.firstname.slice(1)} ${apiUser.name.lastname.charAt(0).toUpperCase() + apiUser.name.lastname.slice(1)}`,
+              email: apiUser.email,
+              phone: apiUser.phone,
+              address: `${apiUser.address.number} ${apiUser.address.street}, ${apiUser.address.city}, ${apiUser.address.zipcode}`,
+              bio: 'Tech enthusiast and FakeStoreAPI verified user.',
+              avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${apiUser.username}`,
+              username: apiUser.username,
+              token: token
+            };
+            setCurrentUser(mappedUser);
+            return { success: true };
+          }
+        }
+        
+        // Fallback if matching user not found in list but token is valid
+        const defaultUser = {
+          name: usernameOrEmail,
+          email: `${usernameOrEmail}@example.com`,
+          phone: '+1 (555) 019-2834',
+          address: '123 E-Commerce Way, Tech City, TC 94043',
+          bio: 'FakeStoreAPI verified user.',
+          avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${usernameOrEmail}`,
+          username: usernameOrEmail,
+          token: token
+        };
+        setCurrentUser(defaultUser);
+        return { success: true };
+      }
+    } catch (e) {
+      console.error('FakeStoreAPI Auth Error: ', e);
     }
-    return false;
+
+    // 3. Fallback to check local users from localStorage
+    try {
+      const localUsers = JSON.parse(localStorage.getItem('localUsers') || '[]');
+      const localUser = localUsers.find(
+        u => u.username === usernameOrEmail || u.email === usernameOrEmail
+      );
+      if (localUser && localUser.password === password) {
+        const loggedInUser = {
+          name: localUser.name,
+          email: localUser.email,
+          phone: localUser.phone || '+1 (555) 019-2834',
+          address: localUser.address || '123 E-Commerce Way, Tech City, TC 94043',
+          bio: localUser.bio || 'Registered shopper on BrandEStore.',
+          avatar: localUser.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${localUser.username || localUser.name}`,
+          username: localUser.username || localUser.email.split('@')[0],
+          isLocal: true
+        };
+        setCurrentUser(loggedInUser);
+        return { success: true };
+      }
+    } catch (e) {
+      console.error('Local Auth Error: ', e);
+    }
+
+    return { success: false, message: 'Invalid username/email or password.' };
   };
 
-  const handleRegister = (name, email, password) => {
+  const handleRegister = async (name, email, password) => {
     if (name && email && password) {
+      const username = email.split('@')[0];
       const newUser = {
-        name: name,
-        email: email,
+        name,
+        email,
+        username,
+        password,
         phone: '+1 (555) 019-2834',
         address: '123 E-Commerce Way, Tech City, TC 94043',
         bio: 'New shopper on BrandEStore.',
-        avatar: null
+        avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`
       };
-      setCurrentUser(newUser);
-      return true;
+
+      // Mock register to FakeStoreAPI to confirm endpoint connectivity
+      try {
+        await fetch('https://fakestoreapi.com/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: email,
+            username: username,
+            password: password,
+            name: {
+              firstname: name.split(' ')[0] || name,
+              lastname: name.split(' ').slice(1).join(' ') || ''
+            },
+            address: {
+              city: 'Tech City',
+              street: 'E-Commerce Way',
+              number: 123,
+              zipcode: '94043',
+              geolocation: { lat: '0', long: '0' }
+            },
+            phone: '1-555-019-2834'
+          })
+        });
+      } catch (e) {
+        console.error('FakeStoreAPI Register Mock Error: ', e);
+      }
+
+      // Save to localUsers in localStorage for fallback login
+      const localUsers = JSON.parse(localStorage.getItem('localUsers') || '[]');
+      if (localUsers.some(u => u.email === email || u.username === username)) {
+        return { success: false, message: 'Username or Email is already registered.' };
+      }
+      localUsers.push(newUser);
+      localStorage.setItem('localUsers', JSON.stringify(localUsers));
+
+      // Auto login
+      setCurrentUser({
+        name: newUser.name,
+        email: newUser.email,
+        phone: newUser.phone,
+        address: newUser.address,
+        bio: newUser.bio,
+        avatar: newUser.avatar,
+        username: newUser.username,
+        isLocal: true
+      });
+      return { success: true };
     }
-    return false;
+    return { success: false, message: 'Please fill in all fields.' };
   };
 
   const handleLogout = () => {
@@ -74,7 +193,24 @@ export default function App() {
   };
 
   const handleUpdateProfile = (updatedFields) => {
-    setCurrentUser(prev => prev ? { ...prev, ...updatedFields } : null);
+    setCurrentUser(prev => {
+      if (!prev) return null;
+      const updated = { ...prev, ...updatedFields };
+      
+      // If local user, update their registered credentials too
+      if (prev.isLocal || !prev.token) {
+        try {
+          const localUsers = JSON.parse(localStorage.getItem('localUsers') || '[]');
+          const updatedLocalUsers = localUsers.map(u => 
+            u.email === prev.email ? { ...u, ...updatedFields } : u
+          );
+          localStorage.setItem('localUsers', JSON.stringify(updatedLocalUsers));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      return updated;
+    });
   };
 
   // Scroll to top on route change

@@ -1,5 +1,38 @@
 import { Search, Settings, Truck, BarChart2 } from 'lucide-react';
 
+// Import local tech images
+import tech1 from '../IMAGES/tech/1.jpg';
+import tech2 from '../IMAGES/tech/2.jpg';
+import tech3 from '../IMAGES/tech/3.jpg';
+import tech4 from '../IMAGES/tech/4.jpg';
+import tech5 from '../IMAGES/tech/5.jpg';
+import tech6 from '../IMAGES/tech/6.jpg';
+import tech7 from '../IMAGES/tech/7.jpg';
+import tech8 from '../IMAGES/tech/8.jpg';
+import tech9 from '../IMAGES/tech/9.jpg';
+import tech10 from '../IMAGES/tech/10.jpg';
+
+// Import local interior images
+import interior1 from '../IMAGES/interior/1.jpg';
+import interior2 from '../IMAGES/interior/2.jpg';
+import interior3 from '../IMAGES/interior/3.jpg';
+import interior4 from '../IMAGES/interior/4.jpg';
+import interior5 from '../IMAGES/interior/5.jpg';
+import interior6 from '../IMAGES/interior/6.jpg';
+import interior7 from '../IMAGES/interior/7.jpg';
+import interior8 from '../IMAGES/interior/8.jpg';
+import interior9 from '../IMAGES/interior/9.jpg';
+import interior10 from '../IMAGES/interior/10.jpg';
+
+// Import local cloth images
+import cloth1 from '../IMAGES/cloth/1.jpg';
+import cloth2 from '../IMAGES/cloth/2.jpg';
+import cloth3 from '../IMAGES/cloth/3.jpg';
+import cloth4 from '../IMAGES/cloth/4.jpg';
+import cloth5 from '../IMAGES/cloth/5.jpg';
+import cloth6 from '../IMAGES/cloth/6.jpg';
+import cloth7 from '../IMAGES/cloth/7.jpg';
+
 export const productsData = [
   {
     id: 1,
@@ -13,7 +46,7 @@ export const productsData = [
     features: ['Metallic'],
     condition: 'Brand new',
     shipping: 'Free Shipping',
-    img: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=300&auto=format&fit=crop&q=80',
+    img: tech2,
     description: 'Canon EOS Rebel T7 DSLR Camera with EF-S 18-55mm IS II Lens. Features 24.1 Megapixel CMOS sensor and built-in Wi-Fi/NFC technology.'
   },
   {
@@ -28,7 +61,7 @@ export const productsData = [
     features: ['Metallic', 'Super power'],
     condition: 'Brand new',
     shipping: 'Free Shipping',
-    img: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=300&auto=format&fit=crop&q=80',
+    img: tech5,
     description: 'GoPro HERO6 Black action camera captures smooth 4K video. Built-in stabilization and rugged waterproof design makes it perfect for adventures.'
   },
   {
@@ -43,7 +76,7 @@ export const productsData = [
     features: ['Plastic cover', 'Large Memory', '8GB Ram'],
     condition: 'Brand new',
     shipping: 'Free Shipping',
-    img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&auto=format&fit=crop&q=80',
+    img: tech7,
     description: 'Apple iPhone 13 Pro with stunning Super Retina XDR display, pro camera system, and ultra-fast A15 Bionic chip for top performance.'
   },
   {
@@ -58,7 +91,7 @@ export const productsData = [
     features: ['Metallic', '8GB Ram', 'Large Memory'],
     condition: 'Brand new',
     shipping: 'Free Shipping',
-    img: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=300&auto=format&fit=crop&q=80',
+    img: tech6,
     description: 'Samsung S22 Ultra features an embedded S Pen, nightography cameras, and a long-lasting battery. The ultimate Android flagship.'
   },
   {
@@ -73,7 +106,7 @@ export const productsData = [
     features: ['Metallic', 'Super power'],
     condition: 'Brand new',
     shipping: 'Free Shipping',
-    img: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=300&auto=format&fit=crop&q=80',
+    img: tech1,
     description: 'Stay connected and track your fitness with the Apple Watch Series 7. Features an always-on display and advanced health monitoring.'
   },
   {
@@ -88,7 +121,7 @@ export const productsData = [
     features: ['Plastic cover', '8GB Ram', 'Super power'],
     condition: 'Brand new',
     shipping: 'Free Shipping',
-    img: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=300&auto=format&fit=crop&q=80',
+    img: tech8,
     description: 'Poco X4 Pro offers 5G connectivity, a 108MP triple camera, and 67W turbocharging at an unbeatable price point.'
   },
   {
@@ -103,7 +136,7 @@ export const productsData = [
     features: ['Plastic cover', 'Large Memory'],
     condition: 'Refurbished',
     shipping: 'Free Shipping',
-    img: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=300&auto=format&fit=crop&q=80',
+    img: tech10,
     description: 'Lenovo Yoga Tab 11 is designed for entertainment with an 11-inch 2K display and JBL quad speakers. Built-in kickstand for multiple modes.'
   },
   {
@@ -118,7 +151,7 @@ export const productsData = [
     features: ['Metallic', '8GB Ram', 'Large Memory'],
     condition: 'Refurbished',
     shipping: 'Paid Shipping',
-    img: 'https://images.unsplash.com/photo-1561154464-82e9adf32764?w=300&auto=format&fit=crop&q=80',
+    img: tech9,
     description: 'Huawei MatePad Pro offers an immersive FullView display, powerful Kirin processor, and seamless multi-screen collaboration with Huawei devices.'
   },
   {
@@ -133,7 +166,7 @@ export const productsData = [
     features: ['Plastic cover', 'Super power'],
     condition: 'Brand new',
     shipping: 'Free Shipping',
-    img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&auto=format&fit=crop&q=80',
+    img: tech3,
     description: 'Industry-leading noise cancellation, exceptional sound quality, and smart touch controls make the Sony WH-1000XM4 the perfect travel companion.'
   },
   {
@@ -148,7 +181,7 @@ export const productsData = [
     features: ['Metallic', '8GB Ram', 'Large Memory'],
     condition: 'Old items',
     shipping: 'Free Shipping',
-    img: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=300&auto=format&fit=crop&q=80',
+    img: tech4,
     description: 'HP Pavilion Laptop delivers reliable performance with a fast Intel Core processor, high-definition graphics, and a sleek modern design.'
   },
   {
@@ -163,7 +196,7 @@ export const productsData = [
     features: ['Metallic', 'Large Memory', '8GB Ram'],
     condition: 'Brand new',
     shipping: 'Free Shipping',
-    img: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=300&auto=format&fit=crop&q=80',
+    img: tech9,
     description: 'iPad Air with the breakthrough M1 chip. Features a 10.9-inch Liquid Retina display, 12MP ultra-wide front camera, and Apple Pencil support.'
   },
   {
@@ -178,7 +211,7 @@ export const productsData = [
     features: ['Plastic cover', 'Super power'],
     condition: 'Brand new',
     shipping: 'Free Shipping',
-    img: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=300&auto=format&fit=crop&q=80',
+    img: tech3,
     description: 'Galaxy Buds2 Pro deliver studio-quality sound with 24-bit Hi-Fi audio, active noise canceling, and comfortable ergonomic design.'
   }
 ];
@@ -190,53 +223,53 @@ export const categories = [
 ];
 
 export const dealItems = [
-  { name: 'Smart watches', discount: '-25%', img: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=180&auto=format&fit=crop&q=80' },
-  { name: 'Laptops', discount: '-15%', img: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=180&auto=format&fit=crop&q=80' },
-  { name: 'GoPro cameras', discount: '-40%', img: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=180&auto=format&fit=crop&q=80' },
-  { name: 'Headphones', discount: '-25%', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=180&auto=format&fit=crop&q=80' },
-  { name: 'Canon cameras', discount: '-25%', img: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=180&auto=format&fit=crop&q=80' },
+  { name: 'Smart watches', discount: '-25%', img: tech1 },
+  { name: 'Laptops', discount: '-15%', img: tech4 },
+  { name: 'GoPro cameras', discount: '-40%', img: tech5 },
+  { name: 'Headphones', discount: '-25%', img: tech3 },
+  { name: 'Canon cameras', discount: '-25%', img: tech2 },
 ];
 
 export const homeItems = [
-  { name: 'Soft chairs', price: '19', img: 'https://images.unsplash.com/photo-1592078615290-033ee584e267?w=140&auto=format&fit=crop&q=80' },
-  { name: 'Sofa & chair', price: '19', img: 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=140&auto=format&fit=crop&q=80' },
-  { name: 'Kitchen dishes', price: '19', img: 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=140&auto=format&fit=crop&q=80' },
-  { name: 'Smart watches', price: '19', img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=140&auto=format&fit=crop&q=80' },
-  { name: 'Kitchen mixer', price: '100', img: 'https://images.unsplash.com/photo-1578643463396-0997cb5328c1?w=140&auto=format&fit=crop&q=80' },
-  { name: 'Blenders', price: '39', img: 'https://images.unsplash.com/photo-1570197571499-166b36435e9f?w=140&auto=format&fit=crop&q=80' },
-  { name: 'Home appliance', price: '19', img: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=140&auto=format&fit=crop&q=80' },
-  { name: 'Coffee maker', price: '10', img: 'https://images.unsplash.com/photo-1579888944880-d98341148733?w=140&auto=format&fit=crop&q=80' },
+  { name: 'Soft chairs', price: '19', img: interior1 },
+  { name: 'Sofa & chair', price: '19', img: interior2 },
+  { name: 'Kitchen dishes', price: '19', img: interior3 },
+  { name: 'Minimalist lamp', price: '19', img: interior4 },
+  { name: 'Kitchen mixer', price: '100', img: interior5 },
+  { name: 'Blenders', price: '39', img: interior6 },
+  { name: 'Home appliance', price: '19', img: interior7 },
+  { name: 'Coffee maker', price: '10', img: interior8 },
 ];
 
 export const techItems = [
-  { name: 'Smart watches', price: '19', img: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=140&auto=format&fit=crop&q=80' },
-  { name: 'Cameras', price: '89', img: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=140&auto=format&fit=crop&q=80' },
-  { name: 'Headphones', price: '70', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=140&auto=format&fit=crop&q=80' },
-  { name: 'Smart watches', price: '90', img: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=140&auto=format&fit=crop&q=80' },
-  { name: 'Gaming set', price: '35', img: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=140&auto=format&fit=crop&q=80' },
-  { name: 'Laptops & PC', price: '340', img: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=140&auto=format&fit=crop&q=80' },
-  { name: 'Smartphones', price: '19', img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=140&auto=format&fit=crop&q=80' },
-  { name: 'Electric kettle', price: '240', img: 'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=140&auto=format&fit=crop&q=80' },
+  { name: 'Smart watches', price: '19', img: tech1 },
+  { name: 'Cameras', price: '89', img: tech2 },
+  { name: 'Headphones', price: '70', img: tech3 },
+  { name: 'Fitness watch', price: '90', img: tech4 },
+  { name: 'Gaming set', price: '35', img: tech5 },
+  { name: 'Laptops & PC', price: '340', img: tech6 },
+  { name: 'Smartphones', price: '19', img: tech7 },
+  { name: 'Electric kettle', price: '240', img: tech8 },
 ];
 
 export const recommended = [
-  { id: 1, name: 'T-shirts with multiple colors, for men', price: 10.30, img: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=220&auto=format&fit=crop&q=80' },
-  { id: 2, name: 'Jeans shorts for men blue color', price: 10.30, img: 'https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=220&auto=format&fit=crop&q=80' },
-  { id: 3, name: 'Brown winter coat medium size', price: 12.50, img: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=220&auto=format&fit=crop&q=80' },
-  { id: 4, name: 'Jeans bag for travel for men', price: 31.00, img: 'https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?w=220&auto=format&fit=crop&q=80' },
-  { id: 5, name: 'Leather wallet', price: 99.00, img: 'https://images.unsplash.com/photo-1627124718515-47feef7a6c3f?w=220&auto=format&fit=crop&q=80' },
-  { id: 6, name: 'Canon camera black, 100x zoom', price: 9.99, img: 'https://images.unsplash.com/photo-1495707902641-75cac588d2e9?w=220&auto=format&fit=crop&q=80' },
-  { id: 7, name: 'Headset for gaming with mic', price: 8.95, img: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=220&auto=format&fit=crop&q=80' },
-  { id: 8, name: 'Smartwatch silver color modern', price: 10.30, img: 'https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?w=220&auto=format&fit=crop&q=80' },
-  { id: 9, name: 'Blue wallet for men leather metarfial', price: 10.30, img: 'https://images.unsplash.com/photo-1588444650733-d8c8541f6478?w=220&auto=format&fit=crop&q=80' },
-  { id: 10, name: 'Jeans bag for travel for men', price: 80.95, img: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=220&auto=format&fit=crop&q=80' },
+  { id: 1, name: 'T-shirts with multiple colors, for men', price: 10.30, img: cloth1 },
+  { id: 2, name: 'Jeans shorts for men blue color', price: 10.30, img: cloth2 },
+  { id: 3, name: 'Brown winter coat medium size', price: 12.50, img: cloth3 },
+  { id: 4, name: 'Jeans bag for travel for men', price: 31.00, img: cloth4 },
+  { id: 5, name: 'Leather wallet', price: 99.00, img: cloth5 },
+  { id: 6, name: 'Canon camera black, 100x zoom', price: 9.99, img: tech2 },
+  { id: 7, name: 'Headset for gaming with mic', price: 8.95, img: tech3 },
+  { id: 8, name: 'Smartwatch silver color modern', price: 10.30, img: tech1 },
+  { id: 9, name: 'Blue wallet for men leather metarfial', price: 10.30, img: cloth6 },
+  { id: 10, name: 'Jeans bag for travel for men', price: 80.95, img: cloth7 },
 ];
 
 export const services = [
-  { icon: Search, title: 'Source from Industry Hubs', img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=320&auto=format&fit=crop&q=80' },
-  { icon: Settings, title: 'Customize Your Products', img: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=320&auto=format&fit=crop&q=80' },
-  { icon: Truck, title: 'Fast, reliable shipping by ocean or air', img: 'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=320&auto=format&fit=crop&q=80' },
-  { icon: BarChart2, title: 'Product monitoring and inspection', img: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=320&auto=format&fit=crop&q=80' },
+  { icon: Search, title: 'Source from Industry Hubs', img: interior9 },
+  { icon: Settings, title: 'Customize Your Products', img: interior10 },
+  { icon: Truck, title: 'Fast, reliable shipping by ocean or air', img: tech9 },
+  { icon: BarChart2, title: 'Product monitoring and inspection', img: tech10 },
 ];
 
 export const defaultDetailFields = {
@@ -278,8 +311,10 @@ export const defaultDetailFields = {
 };
 
 export function enrichProduct(product) {
+  const category = product.category || 'Products';
   return {
     ...defaultDetailFields,
+    breadcrumbs: ['Home', 'Products', category],
     ...product,
     gallery: product.gallery || [product.img, product.img, product.img, product.img, product.img],
     reviews: product.reviews ?? Math.max(12, Math.floor((product.orders || 50) / 5)),
@@ -291,23 +326,31 @@ export function enrichProduct(product) {
 
 export const allProducts = [
   ...productsData.map(enrichProduct),
-  ...recommended.map(item => enrichProduct({
-    id: item.id + 100,
-    name: item.name,
-    price: item.price,
-    img: item.img,
-    category: 'Clothes and wear',
-    brand: 'Generic',
-    oldPrice: item.price * 1.25,
-    rating: 4.3,
-    orders: 80,
-    features: ['Metallic'],
-    condition: 'Brand new',
-    shipping: 'Free Shipping',
-    description: `${item.name}. High quality product with excellent craftsmanship and modern design suitable for everyday use.`,
-    breadcrumbs: ['Home', 'Clothings', "Men's wear", 'Summer clothing'],
-    seller: item.id % 2 === 0 ? 'Best factory LLC' : 'Artel Market',
-  }))
+  ...recommended.map(item => {
+    let category = 'Clothes and wear';
+    if (item.name.toLowerCase().includes('camera') || item.name.toLowerCase().includes('headset')) {
+      category = 'Electronics'; // Map to Electronics to match core data
+    } else if (item.name.toLowerCase().includes('watch')) {
+      category = 'Mobile accessory';
+    }
+    return enrichProduct({
+      id: item.id + 100,
+      name: item.name,
+      price: item.price,
+      img: item.img,
+      category: category,
+      brand: 'Generic',
+      oldPrice: item.price * 1.25,
+      rating: 4.3,
+      orders: 80,
+      features: ['Metallic'],
+      condition: 'Brand new',
+      shipping: 'Free Shipping',
+      description: `${item.name}. High quality product with excellent craftsmanship and modern design suitable for everyday use.`,
+      breadcrumbs: ['Home', 'Products', category],
+      seller: item.id % 2 === 0 ? 'Best factory LLC' : 'Artel Market',
+    });
+  })
 ];
 
 export function getAllProducts() {
@@ -319,10 +362,10 @@ export function getProductById(id) {
 }
 
 export const savedForLaterDefaults = [
-  { id: 7, name: 'Lenovo Yoga Tab 11 - Slate Grey tablet', price: 349.00, img: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=220&auto=format&fit=crop&q=80' },
-  { id: 3, name: 'iPhone 13 Pro Max - 256GB Red Special', price: 999.00, img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=220&auto=format&fit=crop&q=80' },
-  { id: 5, name: 'Smart Watch Series 7 - Platinum Grey', price: 299.00, img: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=220&auto=format&fit=crop&q=80' },
-  { id: 10, name: 'HP Pavilion Laptop 15-inch - Silver Pro', price: 599.00, img: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=220&auto=format&fit=crop&q=80' },
+  { id: 7, name: 'Lenovo Yoga Tab 11 - Slate Grey tablet', price: 349.00, img: tech10 },
+  { id: 3, name: 'iPhone 13 Pro Max - 256GB Red Special', price: 999.00, img: tech7 },
+  { id: 5, name: 'Smart Watch Series 7 - Platinum Grey', price: 299.00, img: tech1 },
+  { id: 10, name: 'HP Pavilion Laptop 15-inch - Silver Pro', price: 599.00, img: tech4 },
 ];
 
 export const regions = [
