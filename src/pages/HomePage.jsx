@@ -128,9 +128,14 @@ export default function HomePage({ navigate, addToCart, currentUser, handleLogou
             </div>
             <div className="deals-grid">
               {dealItems.map((item, i) => (
-                <button key={i} className="deal-item" onClick={() => navigate('/products?category=Electronics')}>
+                <button 
+                  key={i} 
+                  className="deal-item animate-slide-up hover-lift" 
+                  style={{ animationDelay: `${i * 50}ms` }}
+                  onClick={() => navigate('/products?category=Electronics')}
+                >
                   <div className="deal-img-wrap">
-                    <img src={item.img} alt={item.name} />
+                    <img src={item.img} alt={item.name} className="hover-scale" />
                   </div>
                   <p className="deal-name">{item.name}</p>
                   <span className="badge-discount">{item.discount}</span>
@@ -209,7 +214,8 @@ export default function HomePage({ navigate, addToCart, currentUser, handleLogou
                 return (
                   <div
                     key={idx}
-                    className="category-mini-card"
+                    className="category-mini-card animate-slide-up hover-lift"
+                    style={{ animationDelay: `${idx * 40}ms` }}
                     onClick={() => navigate(cat.search ? `/products?category=${encodeURIComponent(cat.search)}` : '/products')}
                   >
                     <div className="mini-card-icon-wrap" style={{ backgroundColor: cat.color }}>
@@ -318,10 +324,14 @@ export default function HomePage({ navigate, addToCart, currentUser, handleLogou
         <div className="container">
           <h2 className="section-title mb-16">Recommended items</h2>
           <div className="product-grid">
-            {recommended.map(item => (
-              <div key={item.id} className="product-card">
+            {recommended.map((item, index) => (
+              <div 
+                key={item.id} 
+                className="product-card animate-slide-up hover-lift"
+                style={{ animationDelay: `${(index % 5) * 50}ms` }}
+              >
                 <div className="product-img-wrap" onClick={() => navigate(`/product/${item.id + 100}`)}>
-                  <img src={item.img} alt={item.name} />
+                  <img src={item.img} alt={item.name} className="hover-scale" />
                 </div>
                 <div className="product-info">
                   <p className="product-price">${item.price.toFixed(2)}</p>
@@ -345,9 +355,14 @@ export default function HomePage({ navigate, addToCart, currentUser, handleLogou
           <h2 className="section-title mb-16">Our extra services</h2>
           <div className="services-grid">
             {services.map((s, i) => (
-              <div key={i} className="service-card" onClick={() => navigate('/products')}>
-                <div className="service-img">
-                  <img src={s.img} alt={s.title} />
+              <div 
+                key={i} 
+                className="service-card animate-slide-up hover-lift" 
+                style={{ animationDelay: `${i * 75}ms` }}
+                onClick={() => navigate('/products')}
+              >
+                <div className="service-img" style={{ overflow: 'hidden' }}>
+                  <img src={s.img} alt={s.title} className="hover-scale" />
                   <div className="service-icon-circle">
                     <s.icon size={20} color="#1c1c1c" />
                   </div>

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { getProductById, getAllProducts } from '../data/mockData';
 
-export default function ProfilePage({ currentUser, handleLogout, handleUpdateProfile, navigate, wishlist }) {
+export default function ProfilePage({ currentUser, handleLogout, handleUpdateProfile, navigate, wishlist, orders = [] }) {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
   const [searchParams] = useSearchParams();
@@ -65,8 +65,15 @@ export default function ProfilePage({ currentUser, handleLogout, handleUpdatePro
     }
   };
 
-  // Mock Order History data
+  // Combine live custom placed orders with initial mock historical orders
   const mockOrders = [
+    ...orders.filter(o => !currentUser || o.userEmail === currentUser.email).map(o => ({
+      id: o.id,
+      date: o.date,
+      total: o.total,
+      status: o.status,
+      items: o.items.map(item => `${item.name} x${item.qty}`).join(', ')
+    })),
     { id: 'ORD-98234', date: 'June 02, 2026', total: 1097.50, status: 'In Transit', items: 'Canon Camera EOS 2000 x1, Smart Watch Series 7 x1' },
     { id: 'ORD-98012', date: 'May 14, 2026', total: 99.50, status: 'Delivered', items: 'GoPro HERO6 4K Action Camera x1' }
   ];

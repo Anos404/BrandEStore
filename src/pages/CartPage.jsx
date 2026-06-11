@@ -62,12 +62,12 @@ export default function CartPage({
           <div className="cart-page-layout">
             <div className="cart-main-col">
               <div className="cart-items-card">
-                {cartItems.map(item => (
-                  <div key={item.id} className="cart-item-card">
+                {cartItems.map((item, index) => (
+                  <div key={item.id} className="cart-item-card animate-slide-up" style={{ animationDelay: `${index * 75}ms` }}>
                     <img
                       src={item.img}
                       alt={item.name}
-                      className="cart-item-card-img"
+                      className="cart-item-card-img hover-scale"
                       onClick={() => navigate(`/product/${item.id}`)}
                     />
                     <div className="cart-item-card-body">
@@ -188,7 +188,10 @@ export default function CartPage({
                 <strong>${orderTotal.toFixed(2)}</strong>
               </div>
 
-              <button className="cart-checkout-green" onClick={() => alert('Checkout coming soon!')}>
+              <button 
+                className="cart-checkout-green hover-lift hover-scale" 
+                onClick={() => navigate('/checkout', { state: { discount, couponCode } })}
+              >
                 Checkout ({cartCount} items)
               </button>
 
@@ -209,9 +212,9 @@ export default function CartPage({
 
             {/* Desktop grid */}
             <div className="saved-products-grid hide-on-mobile">
-              {savedForLater.map(item => (
-                <div key={item.id} className="saved-product-card">
-                  <div className="saved-product-img" onClick={() => navigate(`/product/${item.id}`)}>
+              {savedForLater.map((item, index) => (
+                <div key={item.id} className="saved-product-card animate-slide-up" style={{ animationDelay: `${index * 75}ms` }}>
+                  <div className="saved-product-img hover-scale" onClick={() => navigate(`/product/${item.id}`)}>
                     <img src={item.img} alt={item.name} />
                   </div>
                   <p className="saved-product-price">${item.price.toFixed(2)}</p>

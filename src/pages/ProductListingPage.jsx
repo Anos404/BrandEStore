@@ -579,10 +579,15 @@ export default function ProductListingPage({ wishlist, toggleWishlist, navigate,
 
             // GRID VIEW LAYOUT (3 Columns)
             <div className="products-grid-view">
-              {paginatedProducts.map(product => (
-                <div key={product.id} className="grid-product-card" onClick={() => navigate(`/product/${product.id}`)}>
+              {paginatedProducts.map((product, index) => (
+                <div 
+                  key={product.id} 
+                  className="grid-product-card animate-slide-up hover-lift" 
+                  style={{ animationDelay: `${index * 50}ms` }}
+                  onClick={() => navigate(`/product/${product.id}`)}
+                >
                   <div className="grid-img-wrap">
-                    <img src={product.img} alt={product.name} />
+                    <img src={product.img} alt={product.name} className="hover-scale" />
                   </div>
                   <div className="grid-details-box">
                     <div className="grid-price-row">
@@ -618,10 +623,15 @@ export default function ProductListingPage({ wishlist, toggleWishlist, navigate,
 
             // LIST VIEW LAYOUT (Vertical Rows)
             <div className="products-list-view">
-              {paginatedProducts.map(product => (
-                <div key={product.id} className="list-product-row" onClick={() => navigate(`/product/${product.id}`)}>
+              {paginatedProducts.map((product, index) => (
+                <div 
+                  key={product.id} 
+                  className="list-product-row animate-slide-up hover-lift" 
+                  style={{ animationDelay: `${index * 50}ms` }}
+                  onClick={() => navigate(`/product/${product.id}`)}
+                >
                   <div className="list-img-wrap">
-                    <img src={product.img} alt={product.name} />
+                    <img src={product.img} alt={product.name} className="hover-scale" />
                   </div>
                   <div className="list-info-wrap">
                     <div className="list-title-row">
@@ -711,10 +721,15 @@ export default function ProductListingPage({ wishlist, toggleWishlist, navigate,
       <section className="listing-you-may-like-section">
         <h2 className="section-title mb-16">You may also like</h2>
         <div className="listing-you-may-like-grid">
-          {youMayLike.map(item => (
-            <div key={item.id} className="you-may-like-card" onClick={() => navigate(`/product/${item.id}`)}>
+          {youMayLike.map((item, index) => (
+            <div 
+              key={item.id} 
+              className="you-may-like-card animate-slide-up hover-lift" 
+              style={{ animationDelay: `${index * 50}ms` }}
+              onClick={() => navigate(`/product/${item.id}`)}
+            >
               <div className="you-may-like-img-wrap">
-                <img src={item.img} alt={item.name} />
+                <img src={item.img} alt={item.name} className="hover-scale" />
               </div>
               <div className="you-may-like-info">
                 <p className="you-may-like-price">${item.price.toFixed(2)}</p>

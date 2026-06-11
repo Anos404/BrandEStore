@@ -9,6 +9,8 @@ import ProfilePage from './pages/ProfilePage';
 import ProductListingPage from './pages/ProductListingPage';
 import CartPage from './pages/CartPage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import { enrichProduct, getProductById, savedForLaterDefaults } from './data/mockData';
 import './homepage.css';
 
@@ -218,6 +220,24 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
+  // ---- Orders State ----
+  const [orders, setOrders] = useState(() => {
+    try {
+      const saved = localStorage.getItem('orders');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('orders', JSON.stringify(orders));
+  }, [orders]);
+
+  const handlePlaceOrder = (newOrder) => {
+    setOrders(prev => [newOrder, ...prev]);
+  };
+
   // ---- Cart State ----
   const [cartItems, setCartItems] = useState([]);
   const [savedForLater, setSavedForLater] = useState(savedForLaterDefaults);
@@ -338,6 +358,7 @@ export default function App() {
               handleUpdateProfile={handleUpdateProfile}
               navigate={navigate}
               wishlist={wishlist}
+              orders={orders}
             />
           }
         />
@@ -377,6 +398,30 @@ export default function App() {
               addToCart={addToCart}
               wishlist={wishlist}
               toggleWishlist={toggleWishlist}
+              navigate={navigate}
+            />
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <CheckoutPage
+              cartItems={cartItems}
+              cartTotal={cartTotal}
+              cartCount={cartCount}
+              currentUser={currentUser}
+              clearCart={clearCart}
+              navigate={navigate}
+              onPlaceOrder={handlePlaceOrder}
+              initialDiscount={location.state?.discount || 0}
+              initialCoupon={location.state?.couponCode || ''}
+            />
+          }
+        />
+        <Route
+          path="/order-confirmation"
+          element={
+            <OrderConfirmationPage
               navigate={navigate}
             />
           }

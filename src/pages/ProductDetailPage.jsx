@@ -68,8 +68,8 @@ export default function ProductDetailPage({ addToCart, wishlist, toggleWishlist,
 
         <div className="product-detail-top">
           <div className="product-gallery">
-            <div className="product-main-image">
-              <img src={product.gallery[selectedImage]} alt={product.name} />
+            <div className="product-main-image animate-fade-in" key={selectedImage}>
+              <img src={product.gallery[selectedImage]} alt={product.name} className="hover-scale" />
             </div>
             <div className="product-thumbnails">
               {product.gallery.map((img, i) => (
@@ -137,7 +137,12 @@ export default function ProductDetailPage({ addToCart, wishlist, toggleWishlist,
               className={`save-later-link ${wishlist.includes(product.id) ? 'active' : ''}`}
               onClick={() => toggleWishlist(product.id)}
             >
-              <Heart size={16} fill={wishlist.includes(product.id) ? 'red' : 'none'} color={wishlist.includes(product.id) ? 'red' : '#0d6efd'} />
+              <Heart
+                size={16}
+                className={wishlist.includes(product.id) ? 'animate-heart' : ''}
+                fill={wishlist.includes(product.id) ? 'red' : 'none'}
+                color={wishlist.includes(product.id) ? 'red' : '#0d6efd'}
+              />
               Save for later
             </button>
 
@@ -226,9 +231,14 @@ export default function ProductDetailPage({ addToCart, wishlist, toggleWishlist,
 
           <aside className="you-may-like-sidebar">
             <h4>You may like</h4>
-            {youMayLike.map(item => (
-              <div key={item.id} className="you-may-like-item" onClick={() => navigate(`/product/${item.id}`)}>
-                <img src={item.img} alt={item.name} />
+            {youMayLike.map((item, index) => (
+              <div
+                key={item.id}
+                className="you-may-like-item animate-slide-up hover-lift"
+                style={{ animationDelay: `${index * 50}ms` }}
+                onClick={() => navigate(`/product/${item.id}`)}
+              >
+                <img src={item.img} alt={item.name} className="hover-scale" />
                 <div>
                   <p className="ym-title">{item.name}</p>
                   <p className="ym-price">${item.price.toFixed(2)} - ${(item.price * 1.5).toFixed(2)}</p>
@@ -241,10 +251,15 @@ export default function ProductDetailPage({ addToCart, wishlist, toggleWishlist,
         <section className="related-products-section">
           <h2 className="section-title mb-16">Related products</h2>
           <div className="related-products-grid">
-            {(relatedProducts.length > 0 ? relatedProducts : getAllProducts().slice(0, 6)).map(item => (
-              <div key={item.id} className="related-product-card" onClick={() => navigate(`/product/${item.id}`)}>
+            {(relatedProducts.length > 0 ? relatedProducts : getAllProducts().slice(0, 6)).map((item, index) => (
+              <div
+                key={item.id}
+                className="related-product-card animate-slide-up hover-lift"
+                style={{ animationDelay: `${index * 50}ms` }}
+                onClick={() => navigate(`/product/${item.id}`)}
+              >
                 <div className="related-product-img">
-                  <img src={item.img} alt={item.name} />
+                  <img src={item.img} alt={item.name} className="hover-scale" />
                 </div>
                 <p className="related-product-name">{item.name}</p>
                 <p className="related-product-price">${item.price.toFixed(2)} - ${(item.price * 1.25).toFixed(2)}</p>
